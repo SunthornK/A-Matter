@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum RoomType {
+  ranked
+  quickplay
+  private
+}
+
+enum RoomStatus {
+  waiting
+  full
+  in_game
+  closed
+}
+
+enum GameMode {
+  ranked
+  quickplay
+  private
+}
+
+enum GameStatus {
+  active
+  finished
+}
+
+enum EndReason {
+  completion
+  timeout
+  forfeit
+  stalemate
+}
+
+enum MoveAction {
+  place
+  exchange
+  pass
+}
+
+model User {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username         String   @unique @db.VarChar(30)
+  email            String   @unique @db.VarChar(255)
+  passwordHash     String   @db.VarChar(255)
+  role             Role     @default(user)
+  displayName      String   @db.VarChar(50)
+  country          String?  @db.Char(2)
+  avatarUrl        String?
+  glickoRating     Float    @default(1500.0)
+  glickoRd         Float    @default(350.0)
+  glickoVolatility Float    @default(0.06)
+  gamesPlayed      Int      @default(0)
+  gamesWon         Int      @default(0)
+  tokenVersion     Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  createdRooms Room[]       @relation("RoomCreator")
+  gamePlayers  GamePlayer[]
+
+  @@map("users")
+}
+
+model Room {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creatorId     String?    @db.Uuid
+  inviteCode    String?    @unique @db.Char(6)
+  type          RoomType
+  timePerSideMs Int        @default(1320000)
+  status        RoomStatus @default(waiting)
+  createdAt     DateTime   @default(now())
+  expiresAt     DateTime
+
+  creator User? @relation("RoomCreator", fields: [creatorId], references: [id])
+  game    Game?
+
+  @@index([status, type])
+  @@index([creatorId])
+  @@map("rooms")
+}
+
+model Game {
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId              String     @unique @db.Uuid
+  mode                GameMode
+  status              GameStatus @default(active)
+  boardState          Json
+  tileBag             Json
+  turnNumber          Int        @default(1)
+  currentTurnPlayerId String?    @db.Uuid
+  endReason           EndReason?
+  startedAt           DateTime   @default(now())
+  finishedAt          DateTime?
+
+  room    Room         @relation(fields: [roomId], references: [id])
+  players GamePlayer[]
+  moves   Move[]
+
+  @@index([status])
+  @@index([roomId])
+  @@map("games")
+}
+
+model GamePlayer {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId            String    @db.Uuid
+  userId            String?   @db.Uuid
+  guestToken        String?   @db.VarChar(64)
+  seat              Int
+  score             Int       @default(0)
+  rack              Json
+  timeRemainingMs   Int
+  consecutivePasses Int       @default(0)
+  tileTracker       Json      @default("[]")
+  lastExchangeAt    DateTime?
+
+  game  Game   @relation(fields: [gameId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+  moves Move[]
+
+  @@unique([gameId, seat])
+  @@index([gameId])
+  @@index([userId])
+  @@map("game_players")
+}
+
+model Move {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId           String     @db.Uuid
+  playerId         String     @db.Uuid
+  turnNumber       Int
+  action           MoveAction
+  placements       Json?
+  equations        Json?
+  exchangedIndices Json?
+  scoreEarned      Int        @default(0)
+  timeSpentMs      Int
+  createdAt        DateTime   @default(now())
+
+  game   Game       @relation(fields: [gameId], references: [id])
+  player GamePlayer @relation(fields: [playerId], references: [id])
+
+  @@index([gameId, turnNumber])
+  @@index([gameId])
+  @@index([playerId])
+  @@map("moves")
+}
