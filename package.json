@@ -1,0 +1,8 @@
+{
+  "name": "a-matter",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "npm run test --workspaces"
+  }
+}
