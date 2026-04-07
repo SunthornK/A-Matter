@@ -1,0 +1,32 @@
+{
+  "name": "@a-matter/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@a-matter/db": "*",
+    "@a-matter/validator": "*",
+    "@fastify/jwt": "^9.0.0",
+    "fastify": "^4.28.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.0",
+    "fastify-plugin": "^5.0.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}
