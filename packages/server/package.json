@@ -14,10 +14,10 @@
   "dependencies": {
     "@a-matter/db": "*",
     "@a-matter/validator": "*",
-    "@fastify/jwt": "^9.0.0",
-    "fastify": "^4.28.0",
+    "@fastify/jwt": "^8.0.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.0",
+    "fastify": "^4.28.0",
     "fastify-plugin": "^4.5.1",
     "jsonwebtoken": "^9.0.0"
   },
