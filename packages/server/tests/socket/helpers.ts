@@ -40,13 +40,21 @@ export function connectSocket(port: number, token: string, gameId: string): Test
   })
 }
 
-export function waitForEvent<T>(socket: TestSocket, event: keyof ServerEvents): Promise<T> {
+export function waitForEvent<K extends keyof ServerEvents>(
+  socket: TestSocket,
+  event: K,
+): Promise<Parameters<ServerEvents[K]>[0]> {
+  type Payload = Parameters<ServerEvents[K]>[0]
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Timeout waiting for ${String(event)}`)), 3000)
-    socket.once(event as string, (data: T) => {
+    const handler = (data: Payload) => {
       clearTimeout(timer)
       resolve(data)
-    })
+    }
+    const timer = setTimeout(() => {
+      socket.off(event as Parameters<TestSocket['off']>[0], handler as never)
+      reject(new Error(`Timeout waiting for ${String(event)}`))
+    }, 3000)
+    socket.once(event as Parameters<TestSocket['once']>[0], handler as never)
   })
 }
 

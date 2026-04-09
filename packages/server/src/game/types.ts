@@ -13,7 +13,7 @@ export interface SocketData {
 }
 
 export interface GameContext {
-  io: Server
+  io: Server<ClientEvents, ServerEvents, Record<string, never>, SocketData>
   socket: Socket<ClientEvents, ServerEvents, Record<string, never>, SocketData>
   prisma: PrismaClient
 }
