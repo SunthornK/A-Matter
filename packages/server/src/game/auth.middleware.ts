@@ -67,7 +67,7 @@ export function authMiddleware(prisma: PrismaClient) {
       return next(new Error('Unauthorized: not a player in this game'))
     }
     if (player.game.status !== 'active') {
-      return next(new Error('Game is not active'))
+      return next(new Error('Unauthorized: game is not active'))
     }
 
     socket.data = {
