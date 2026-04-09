@@ -5,6 +5,7 @@ import { config } from './config'
 import prismaPlugin from './plugins/prisma'
 import { authRoutes } from './routes/auth'
 import { userRoutes } from './routes/users'
+import { leaderboardRoutes } from './routes/leaderboard'
 import { authenticate } from './middleware/authenticate'
 
 export async function buildApp() {
@@ -24,6 +25,7 @@ export async function buildApp() {
 
   await app.register(authRoutes)
   await app.register(userRoutes)
+  await app.register(leaderboardRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))
 
