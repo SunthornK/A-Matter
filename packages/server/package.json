@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@a-matter/db": "*",
+    "ajv-formats": "^2.1.1",
     "@a-matter/validator": "*",
     "@fastify/jwt": "^8.0.1",
     "bcryptjs": "^2.4.3",

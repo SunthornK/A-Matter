@@ -22,7 +22,7 @@ export async function authRoutes(app: FastifyInstance) {
         required: ['username', 'email', 'password', 'display_name'],
         properties: {
           username: { type: 'string', minLength: 2, maxLength: 30, pattern: '^[a-z0-9_]+$' },
-          email: { type: 'string', minLength: 5, maxLength: 255 },
+          email: { type: 'string', format: 'email', maxLength: 255 },
           password: { type: 'string', minLength: 8 },
           display_name: { type: 'string', minLength: 1, maxLength: 50 },
         },
@@ -44,7 +44,7 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     const token = signToken(
-      { user_id: user.id, role: user.role as 'user' | 'admin', token_version: user.tokenVersion },
+      { user_id: user.id, role: user.role === 'admin' ? 'admin' : 'user', token_version: user.tokenVersion },
       config.jwtSecret,
       config.jwtTtlSeconds,
     )
@@ -80,7 +80,7 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     const token = signToken(
-      { user_id: user.id, role: user.role as 'user' | 'admin', token_version: user.tokenVersion },
+      { user_id: user.id, role: user.role === 'admin' ? 'admin' : 'user', token_version: user.tokenVersion },
       config.jwtSecret,
       config.jwtTtlSeconds,
     )

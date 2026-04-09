@@ -75,7 +75,6 @@ describe('auth service', () => {
 const testUsernames: string[] = []
 afterAll(async () => {
   await prisma.user.deleteMany({ where: { username: { in: testUsernames } } })
-  await prisma.$disconnect()
 })
 
 describe('POST /api/auth/register', () => {
@@ -116,6 +115,27 @@ describe('POST /api/auth/register', () => {
       method: 'POST',
       url: '/api/auth/register',
       payload: { username, email: `${username}2@example.com`, password: 'Password123!', display_name: 'Second' },
+    })
+    expect(res.statusCode).toBe(409)
+    await app.close()
+  })
+
+  it('returns 409 for duplicate email', async () => {
+    const app = await buildApp()
+    const email = `dup_email_${Date.now()}@example.com`
+    const u1 = `dup_email_user1_${Date.now()}`
+    const u2 = `dup_email_user2_${Date.now()}`
+    testUsernames.push(u1, u2)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username: u1, email, password: 'Password123!', display_name: 'First' },
+    })
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username: u2, email, password: 'Password123!', display_name: 'Second' },
     })
     expect(res.statusCode).toBe(409)
     await app.close()
