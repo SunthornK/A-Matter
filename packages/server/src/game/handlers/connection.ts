@@ -3,6 +3,9 @@ import type { PrismaClient } from '@prisma/client'
 import type { ClientEvents, ServerEvents, SocketData } from '../types'
 import { buildGameState } from '../state'
 import { handlePlace } from './place'
+import { handleExchange } from './exchange'
+import { handlePass } from './pass'
+import { handleResign } from './resign'
 
 type GameSocket = Socket<ClientEvents, ServerEvents, Record<string, never>, SocketData>
 
@@ -31,6 +34,24 @@ export function onConnection(
 
   socket.on('move:place', (data) => {
     handlePlace(socket, io, data, prisma, turnStartedAt).catch((err) => {
+      socket.emit('error', { code: 'INTERNAL_ERROR', message: String(err) })
+    })
+  })
+
+  socket.on('move:exchange', (data) => {
+    handleExchange(socket, io, data, prisma, turnStartedAt)
+      .then(() => { turnStartedAt = Date.now() })
+      .catch((err) => socket.emit('error', { code: 'INTERNAL_ERROR', message: String(err) }))
+  })
+
+  socket.on('move:pass', () => {
+    handlePass(socket, io, prisma, turnStartedAt)
+      .then(() => { turnStartedAt = Date.now() })
+      .catch((err) => socket.emit('error', { code: 'INTERNAL_ERROR', message: String(err) }))
+  })
+
+  socket.on('game:resign', () => {
+    handleResign(socket, io, prisma).catch((err) => {
       socket.emit('error', { code: 'INTERNAL_ERROR', message: String(err) })
     })
   })
