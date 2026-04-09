@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterAll } from 'vitest'
 import { buildApp } from '../src/app'
 import { hashPassword, verifyPassword, signToken, verifyTokenPayload } from '../src/services/auth.service'
+import { prisma } from '@a-matter/db'
 
 describe('health', () => {
   it('GET /health returns 200', async () => {
@@ -67,5 +68,121 @@ describe('auth service', () => {
       60,
     )
     expect(() => verifyTokenPayload(token, 'secret-b')).toThrow()
+  })
+})
+
+// Clean up test users after each auth route test run
+const testUsernames: string[] = []
+afterAll(async () => {
+  await prisma.user.deleteMany({ where: { username: { in: testUsernames } } })
+  await prisma.$disconnect()
+})
+
+describe('POST /api/auth/register', () => {
+  it('creates a user and returns a JWT', async () => {
+    const app = await buildApp()
+    const username = `reg_test_${Date.now()}`
+    testUsernames.push(username)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: {
+        username,
+        email: `${username}@example.com`,
+        password: 'Password123!',
+        display_name: 'Test User',
+      },
+    })
+    expect(res.statusCode).toBe(201)
+    const body = JSON.parse(res.body)
+    expect(body.token).toBeDefined()
+    expect(typeof body.token).toBe('string')
+    expect(body.user.username).toBe(username)
+    await app.close()
+  })
+
+  it('returns 409 for duplicate username', async () => {
+    const app = await buildApp()
+    const username = `dup_test_${Date.now()}`
+    testUsernames.push(username)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username, email: `${username}@example.com`, password: 'Password123!', display_name: 'First' },
+    })
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username, email: `${username}2@example.com`, password: 'Password123!', display_name: 'Second' },
+    })
+    expect(res.statusCode).toBe(409)
+    await app.close()
+  })
+
+  it('returns 400 for missing fields', async () => {
+    const app = await buildApp()
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username: 'no_email' },
+    })
+    expect(res.statusCode).toBe(400)
+    await app.close()
+  })
+})
+
+describe('POST /api/auth/login', () => {
+  it('returns JWT for valid credentials', async () => {
+    const app = await buildApp()
+    const username = `login_test_${Date.now()}`
+    testUsernames.push(username)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username, email: `${username}@example.com`, password: 'Password123!', display_name: 'Login Test' },
+    })
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username, password: 'Password123!' },
+    })
+    expect(res.statusCode).toBe(200)
+    const body = JSON.parse(res.body)
+    expect(body.token).toBeDefined()
+    await app.close()
+  })
+
+  it('returns 401 for wrong password', async () => {
+    const app = await buildApp()
+    const username = `wrong_pw_${Date.now()}`
+    testUsernames.push(username)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username, email: `${username}@example.com`, password: 'Password123!', display_name: 'WP Test' },
+    })
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username, password: 'WrongPassword!' },
+    })
+    expect(res.statusCode).toBe(401)
+    await app.close()
+  })
+
+  it('returns 401 for unknown username', async () => {
+    const app = await buildApp()
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'nobody_exists_xyz', password: 'anything' },
+    })
+    expect(res.statusCode).toBe(401)
+    await app.close()
   })
 })

@@ -2,17 +2,18 @@ import Fastify from 'fastify'
 import jwt from '@fastify/jwt'
 import { config } from './config'
 import prismaPlugin from './plugins/prisma'
+import { authRoutes } from './routes/auth'
 
 export async function buildApp() {
   const app = Fastify({
     logger: config.nodeEnv === 'development',
+    ajv: { customOptions: { allErrors: true } },
   })
 
-  // Plugins
   await app.register(jwt, { secret: config.jwtSecret })
   await app.register(prismaPlugin)
+  await app.register(authRoutes)
 
-  // Health check
   app.get('/health', async () => ({ status: 'ok' }))
 
   return app
