@@ -4,6 +4,7 @@ import addFormats from 'ajv-formats'
 import { config } from './config'
 import prismaPlugin from './plugins/prisma'
 import { authRoutes } from './routes/auth'
+import { authenticate } from './middleware/authenticate'
 
 export async function buildApp() {
   const app = Fastify({
@@ -16,6 +17,10 @@ export async function buildApp() {
 
   await app.register(jwt, { secret: config.jwtSecret })
   await app.register(prismaPlugin)
+
+  // Decorate with authenticate so routes can use it as a preHandler
+  app.decorate('authenticate', authenticate)
+
   await app.register(authRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))

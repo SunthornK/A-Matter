@@ -206,3 +206,57 @@ describe('POST /api/auth/login', () => {
     await app.close()
   })
 })
+
+describe('authenticate middleware', () => {
+  it('rejects requests with no token', async () => {
+    const app = await buildApp()
+    // Register a protected test route
+    app.get('/test-protected', { preHandler: [app.authenticate] }, async () => ({ ok: true }))
+    await app.ready()
+
+    const res = await app.inject({ method: 'GET', url: '/test-protected' })
+    expect(res.statusCode).toBe(401)
+    await app.close()
+  })
+
+  it('rejects requests with invalid token', async () => {
+    const app = await buildApp()
+    app.get('/test-protected2', { preHandler: [app.authenticate] }, async () => ({ ok: true }))
+    await app.ready()
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/test-protected2',
+      headers: { authorization: 'Bearer not.a.token' },
+    })
+    expect(res.statusCode).toBe(401)
+    await app.close()
+  })
+
+  it('allows requests with a valid token', async () => {
+    const app = await buildApp()
+    app.get('/test-protected3', { preHandler: [app.authenticate] }, async (req) => {
+      return { user_id: (req.user as { user_id: string }).user_id }
+    })
+    await app.ready()
+
+    // Create a user + get token
+    const username = `mw_test_${Date.now()}`
+    testUsernames.push(username)
+    const regRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: { username, email: `${username}@example.com`, password: 'Password123!', display_name: 'MW' },
+    })
+    const { token } = JSON.parse(regRes.body)
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/test-protected3',
+      headers: { authorization: `Bearer ${token}` },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.body).user_id).toBeDefined()
+    await app.close()
+  })
+})
