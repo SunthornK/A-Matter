@@ -46,4 +46,29 @@ describe('Socket.IO connection', () => {
     expect(error.message).toMatch(/game_id/i)
     socket.disconnect()
   })
+
+  it('receives game:state on connect', async () => {
+    const socket = connectSocket(server.port, game.aliceToken, game.gameId)
+    const statePromise = waitForEvent(socket, 'game:state')
+    socket.connect()
+    const state = await statePromise
+    expect(state.game_id).toBe(game.gameId)
+    expect(state.my_player_id).toBe(game.alicePlayerId)
+    expect(Array.isArray(state.my_rack)).toBe(true)
+    expect(state.my_rack.length).toBe(8)
+    expect(state.board).toHaveLength(15)
+    expect(state.players).toHaveLength(2)
+    socket.disconnect()
+  })
+
+  it('receives game:state on state:request', async () => {
+    const socket = connectSocket(server.port, game.aliceToken, game.gameId)
+    socket.connect()
+    await waitForEvent(socket, 'game:state')  // initial state
+    const statePromise = waitForEvent(socket, 'game:state')
+    socket.emit('state:request')
+    const state = await statePromise
+    expect(state.game_id).toBe(game.gameId)
+    socket.disconnect()
+  })
 })
