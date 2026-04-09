@@ -25,5 +25,14 @@ export function signToken(
 }
 
 export function verifyTokenPayload(token: string, secret: string): TokenPayload {
-  return jwt.verify(token, secret) as TokenPayload
+  const decoded = jwt.verify(token, secret)
+  if (
+    typeof decoded !== 'object' ||
+    decoded === null ||
+    typeof (decoded as Record<string, unknown>)['user_id'] !== 'string' ||
+    typeof (decoded as Record<string, unknown>)['token_version'] !== 'number'
+  ) {
+    throw new Error('Invalid token payload shape')
+  }
+  return decoded as TokenPayload
 }
