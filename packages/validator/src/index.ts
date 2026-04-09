@@ -108,4 +108,4 @@ function buildBonusMap(): Map<string, NonNullable<(typeof BONUS_SQUARES)[0][0]>>
   return map
 }
 
-export type { ValidationResult, EquationResult } from './types'
+export type { ValidationResult, EquationResult, BoardTile, Placement, Board } from './types'
