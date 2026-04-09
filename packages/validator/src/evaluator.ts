@@ -15,7 +15,7 @@ export function evaluate(tokens: Token[]): Fraction {
   const working = [...tokens]
   if (working[0]?.kind === 'negate') {
     working.shift()
-    const first = working[0]
+    const first = working[0] as Token | undefined
     if (!first || first.kind !== 'number') throw new EvaluationError('Negate must precede a number')
     working[0] = { kind: 'number', value: -(first.value) }
   }
