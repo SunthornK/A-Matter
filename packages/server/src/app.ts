@@ -4,6 +4,7 @@ import addFormats from 'ajv-formats'
 import { config } from './config'
 import prismaPlugin from './plugins/prisma'
 import { authRoutes } from './routes/auth'
+import { userRoutes } from './routes/users'
 import { authenticate } from './middleware/authenticate'
 
 export async function buildApp() {
@@ -22,6 +23,7 @@ export async function buildApp() {
   app.decorate('authenticate', authenticate)
 
   await app.register(authRoutes)
+  await app.register(userRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))
 
