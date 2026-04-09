@@ -43,7 +43,7 @@ export async function handlePlace(
   }
 
   const myPlayer = game.players.find((p) => p.id === playerId)!
-  const rack = myPlayer.rack as BoardTile[]
+  const rack = myPlayer.rack as unknown as BoardTile[]
   const board = (game.boardState as { cells: (BoardTile | null)[][] }).cells
   const isFirstMove = game.turnNumber === 1
 
@@ -69,7 +69,7 @@ export async function handlePlace(
   const remainingRack = rack.filter((_, i) => !placedIndices.has(i))
 
   // Draw replacement tiles from bag
-  const bag = shuffle(game.tileBag as BoardTile[])
+  const bag = shuffle(game.tileBag as unknown as BoardTile[])
   const drawCount = Math.min(data.placements.length, bag.length)
   const newTiles = bag.slice(0, drawCount)
   const newBag = bag.slice(drawCount)
@@ -94,6 +94,13 @@ export async function handlePlace(
   const nextPlayerId = otherPlayer.id
   const timeSpentMs = Date.now() - turnStartedAt
 
+  // Compute completion endgame bonus (if applicable) before the atomic write
+  const isCompletion = newRack.length === 0 && newBag.length === 0
+  const opponentRack = otherPlayer.rack as unknown as BoardTile[]
+  const winnerBonus = isCompletion
+    ? opponentRack.reduce((sum, t) => sum + t.points, 0) * 2
+    : 0
+
   await recordPlaceMove({
     prisma, gameId, playerId,
     turnNumber: game.turnNumber,
@@ -105,6 +112,7 @@ export async function handlePlace(
     newBag,
     nextPlayerId,
     timeSpentMs,
+    completionEndgame: isCompletion ? { winnerBonus } : undefined,
   })
 
   // Broadcast move:result to room
@@ -122,23 +130,7 @@ export async function handlePlace(
   // Send updated rack to acting player only
   socket.emit('rack:update', { rack: newRack, timestamp: Date.now() })
 
-  // Check completion endgame: player used all tiles AND bag is empty
-  if (newRack.length === 0 && newBag.length === 0) {
-    const opponentRack = otherPlayer.rack as BoardTile[]
-    const opponentTileValue = opponentRack.reduce((sum, t) => sum + t.points, 0)
-    const winnerBonus = opponentTileValue * 2
-
-    await prisma.$transaction([
-      prisma.gamePlayer.update({
-        where: { id: playerId },
-        data: { score: { increment: winnerBonus } },
-      }),
-      prisma.game.update({
-        where: { id: gameId },
-        data: { status: 'finished', endReason: 'completion', finishedAt: new Date() },
-      }),
-    ])
-
+  if (isCompletion) {
     const updatedPlayers = await prisma.gamePlayer.findMany({ where: { gameId } })
     io.to(`game:${gameId}`).emit('game:over', {
       reason: 'completion',

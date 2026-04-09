@@ -69,9 +69,9 @@ export interface TestGame {
 }
 
 export async function createTestGame(app: FastifyInstance): Promise<TestGame> {
-  const ts = Date.now()
-  const aliceUsername = `ws_alice_${ts}`
-  const bobUsername = `ws_bob_${ts}`
+  const uid = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+  const aliceUsername = `ws_alice_${uid}`
+  const bobUsername = `ws_bob_${uid}`
 
   // Register Alice
   const aReg = await app.inject({

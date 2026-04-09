@@ -15,6 +15,8 @@ export interface RecordMoveArgs {
   newBag: BoardTile[]
   nextPlayerId: string
   timeSpentMs: number
+  /** When set, the move + game-over state change are committed atomically */
+  completionEndgame?: { winnerBonus: number }
 }
 
 export async function recordPlaceMove(args: RecordMoveArgs): Promise<void> {
@@ -22,9 +24,11 @@ export async function recordPlaceMove(args: RecordMoveArgs): Promise<void> {
     prisma, gameId, playerId, turnNumber,
     placements, equations, scoreEarned, newRack,
     newBoard, newBag, nextPlayerId, timeSpentMs,
+    completionEndgame,
   } = args
 
-  await prisma.$transaction([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ops: any[] = [
     prisma.move.create({
       data: {
         gameId,
@@ -54,7 +58,22 @@ export async function recordPlaceMove(args: RecordMoveArgs): Promise<void> {
         currentTurnPlayerId: nextPlayerId,
       },
     }),
-  ])
+  ]
+
+  if (completionEndgame) {
+    ops.push(
+      prisma.gamePlayer.update({
+        where: { id: playerId },
+        data: { score: { increment: completionEndgame.winnerBonus } },
+      }),
+      prisma.game.update({
+        where: { id: gameId },
+        data: { status: 'finished', endReason: 'completion', finishedAt: new Date() },
+      }),
+    )
+  }
+
+  await prisma.$transaction(ops)
 }
 
 export async function recordPassMove(args: {

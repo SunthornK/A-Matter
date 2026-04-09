@@ -25,7 +25,7 @@ export async function buildGameState(
     seat: p.seat,
     score: p.score,
     time_remaining_ms: p.timeRemainingMs,
-    rack_count: (p.rack as BoardTile[]).length,
+    rack_count: (p.rack as unknown as BoardTile[]).length,
   }))
 
   const myPlayer = game.players.find((p) => p.id === requestingPlayerId)
@@ -37,7 +37,7 @@ export async function buildGameState(
     turn_number: game.turnNumber,
     current_turn_player_id: game.currentTurnPlayerId ?? '',
     players,
-    my_rack: myPlayer.rack as BoardTile[],
+    my_rack: myPlayer.rack as unknown as BoardTile[],
     my_player_id: requestingPlayerId,
     status: game.status === 'active' ? 'active' : 'finished',
     timestamp: Date.now(),
