@@ -40,8 +40,8 @@ export async function userRoutes(app: FastifyInstance) {
     '/api/users/:id/games',
     { preHandler: [app.authenticate] },
     async (req) => {
-      const limit = Math.min(parseInt(req.query.limit ?? '20', 10), 100)
-      const offset = parseInt(req.query.offset ?? '0', 10)
+      const limit = Math.min(Math.max(1, parseInt(req.query.limit ?? '20', 10) || 20), 100)
+      const offset = Math.max(0, parseInt(req.query.offset ?? '0', 10) || 0)
 
       const gamePlayers = await app.prisma.gamePlayer.findMany({
         where: { userId: req.params.id },
