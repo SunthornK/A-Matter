@@ -74,17 +74,22 @@ describe('move:pass', () => {
     const secondSocket = firstSocket === alice ? bob : alice
     const sockets = [firstSocket, secondSocket]
 
-    // Alternate passes 6 times
+    // Alternate passes 6 times — wait for move:result on BOTH sockets so neither
+    // socket carries a stale queued event into the next iteration.
     for (let i = 0; i < 5; i++) {
       const acting = sockets[i % 2]!
       const other = sockets[(i + 1) % 2]!
-      const resultP = waitForEvent(other, 'move:result')
+      const resultA = waitForEvent(acting, 'move:result')
+      const resultB = waitForEvent(other, 'move:result')
       acting.emit('move:pass')
-      await resultP
+      await Promise.all([resultA, resultB])
     }
 
-    // 6th pass should trigger game:over
-    const gameOverP = waitForEvent(alice, 'game:over')
+    // 6th pass should trigger game:over (listen on both sockets — either may receive it first)
+    const gameOverP = Promise.race([
+      waitForEvent(alice, 'game:over'),
+      waitForEvent(bob, 'game:over'),
+    ])
     sockets[5 % 2]!.emit('move:pass')
     const gameOver = await gameOverP
 

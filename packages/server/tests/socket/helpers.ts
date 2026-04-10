@@ -36,6 +36,7 @@ export function connectSocket(port: number, token: string, gameId: string): Test
   return ioClient(`http://127.0.0.1:${port}`, {
     path: '/ws',
     query: { token, game_id: gameId },
+    transports: ['websocket'],
     autoConnect: false,
   })
 }

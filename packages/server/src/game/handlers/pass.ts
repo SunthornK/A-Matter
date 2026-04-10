@@ -13,7 +13,6 @@ export async function handlePass(
   turnStartedAt: number,
 ): Promise<void> {
   const { gameId, playerId } = socket.data
-
   const game = await prisma.game.findUniqueOrThrow({
     where: { id: gameId },
     include: { players: true },
@@ -37,7 +36,7 @@ export async function handlePass(
     timeSpentMs,
   })
 
-  socket.to(`game:${gameId}`).emit('move:result', {
+  io.to(`game:${gameId}`).emit('move:result', {
     player_id: playerId,
     turn_number: game.turnNumber,
     action: 'pass',
