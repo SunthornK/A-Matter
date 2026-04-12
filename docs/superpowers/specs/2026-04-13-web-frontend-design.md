@@ -139,7 +139,7 @@ Guests cannot access `/lobby`, `/profile`, `/leaderboard`, or `/admin`. The serv
 
 interface BoardCell {
   value: string
-  owner: 'mine' | 'opponent' | null
+  owner: string | null   // player_id of who placed it; resolve display via owner === myPlayerId
   isBonus: boolean
   bonusType: 'b3eq' | 'b2eq' | 'b3pc' | 'b2pc' | null
 }
@@ -232,24 +232,44 @@ interface GameStore {
 
 Lives in `src/hooks/useGameSocket.ts`. Manages Socket.IO connection only — no state.
 
+Return type is `(event: string, data?: unknown) => void` — a stable emit function `ActionButtons` uses to fire moves.
+
 ```ts
-function useGameSocket(gameId: string, token: string): void {
+function useGameSocket(
+  gameId: string,
+  token: string,
+): (event: string, data?: unknown) => void {
+  const socketRef = useRef<ReturnType<typeof io> | null>(null)
+
   useEffect(() => {
     const socket = io(WS_URL, {
       path: '/ws',
       query: { token, game_id: gameId },
       transports: ['websocket'],
     })
+    socketRef.current = socket
 
     gameStore.setState({ status: 'connecting' })
 
+    let lastSeq = -1
+
+    // All listeners call getState() inside the callback — no stale closure risk
     socket.on('connect', () => gameStore.setState({ status: 'connected' }))
     socket.on('disconnect', () => gameStore.setState({ status: 'disconnected' }))
-    socket.on('game:state', gameStore.getState().applyGameState)
-    socket.on('move:result', gameStore.getState().applyMoveResult)
-    socket.on('rack:update', gameStore.getState().applyRackUpdate)
-    socket.on('timer:sync', gameStore.getState().applyTimerSync)
-    socket.on('game:over', gameStore.getState().applyGameOver)
+    socket.on('game:state', (payload) => {
+      lastSeq = payload.seq ?? lastSeq
+      gameStore.getState().applyGameState(payload)
+    })
+    socket.on('move:result', (payload) => {
+      if (payload.seq != null && payload.seq !== lastSeq + 1) {
+        socket.emit('state:request')  // gap detected — resync
+      }
+      lastSeq = payload.seq ?? lastSeq
+      gameStore.getState().applyMoveResult(payload)
+    })
+    socket.on('rack:update', (payload) => gameStore.getState().applyRackUpdate(payload))
+    socket.on('timer:sync', (payload) => gameStore.getState().applyTimerSync(payload))
+    socket.on('game:over', (payload) => gameStore.getState().applyGameOver(payload))
     socket.on('player:disconnect', ({ player_id }) => {
       if (player_id !== gameStore.getState().myPlayerId) {
         gameStore.getState().setOpponentDisconnected(true)
@@ -264,18 +284,18 @@ function useGameSocket(gameId: string, token: string): void {
 
     return () => {
       socket.disconnect()
+      socketRef.current = null
       gameStore.getState().resetGame()
     }
   }, [gameId, token])
 
-  // Returns a stable emit function for action buttons
   return useCallback((event: string, data?: unknown) => {
     socketRef.current?.emit(event, data)
   }, [])
 }
 ```
 
-Game actions (place, pass, exchange, resign) are emitted via a `gameSocketRef` exposed from the hook. `<ActionButtons>` calls `socket.emit('move:pass')` etc. through this ref.
+`<ActionButtons>` receives the returned `emit` function as a prop and calls e.g. `emit('move:pass')`, `emit('move:place', data)`.
 
 ---
 
@@ -295,7 +315,7 @@ GamePage
       Timer (×2)            — reads players[*].timeRemainingMs only
       RecentMoves           — reads from local move log (built from applyMoveResult)
       ActionButtons         — emits socket events; reads selectedRackIndex, pendingPlacements
-        ExchangeModal       — reads rack; emits move:exchange
+        ExchangeModal       — reads rack, bag; emits move:exchange (disabled when bag < 5)
         ResignModal         — emits game:resign
   GameOverModal             — reads gameOverResult; shown when non-null
 ```
@@ -360,9 +380,20 @@ All React Query calls go through typed wrappers in the `api/` directory — no r
 - React Query for user profile data
 
 ### JoinPage (`/join/:inviteCode`)
-- Single input: display name
-- On submit: generate guest token, call `POST /api/rooms/join`, redirect to `/game/:gameId`
-- If user is already logged in (JWT present): skip name input, use their account instead
+Two branches based on auth state:
+
+**Logged-in user (JWT present):**
+- No name input shown — their account is used directly
+- Calls `POST /api/rooms/join` with `{ invite_code }` + `Authorization: Bearer <jwt>`
+- Redirects to `/game/:gameId` on success
+
+**Guest (no JWT):**
+- Shows a single display name input
+- On submit: generate 64-char token via `generateGuestToken()`, store in `sessionStorage`
+- Calls `POST /api/rooms/join` with `{ invite_code, display_name }` + `Authorization: Bearer <guestToken>`
+- Redirects to `/game/:gameId` on success
+
+The page detects which path to take via `getJwt() !== null` in `AuthContext`.
 
 ### GamePage (`/game/:gameId`)
 - Mounts `useGameSocket(gameId, token)`
