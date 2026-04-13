@@ -1,0 +1,53 @@
+.tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--border);
+  width: 72px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.heading {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.entry:hover {
+  background: var(--tile-bg);
+}
+
+.entrySeen {
+  opacity: 0.4;
+}
+
+.tileLabel {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tile-text);
+}
+
+.count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}

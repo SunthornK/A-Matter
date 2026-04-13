@@ -1,0 +1,69 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border);
+  width: 220px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.playerCard {
+  padding: 12px;
+  background: var(--tile-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.playerCard.active {
+  border-color: var(--green);
+}
+
+.playerName {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.you {
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 400;
+}
+
+.score {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tilesLeft {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.bagCount {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.sectionLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
