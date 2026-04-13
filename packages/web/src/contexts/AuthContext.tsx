@@ -18,7 +18,7 @@ function loadStoredUser(): AuthUser | null {
     const raw = localStorage.getItem('user')
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    if (typeof parsed?.id !== 'string' || typeof parsed?.username !== 'string') {
+    if (typeof parsed?.id !== 'string' || typeof parsed?.username !== 'string' || typeof parsed?.display_name !== 'string') {
       localStorage.removeItem('user')
       return null
     }

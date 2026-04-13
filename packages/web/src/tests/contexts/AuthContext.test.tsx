@@ -30,7 +30,7 @@ function LogoutButton() {
 
 beforeEach(() => {
   localStorage.clear()
-  vi.restoreAllMocks()
+  vi.resetAllMocks()
 })
 
 describe('AuthContext', () => {
