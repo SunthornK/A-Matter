@@ -21,6 +21,11 @@
   user-select: none;
 }
 
+.tileDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .tileSelected {
   border-color: var(--gold);
   background: var(--gold-dim);

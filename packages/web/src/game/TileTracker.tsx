@@ -24,7 +24,7 @@ export function TileTracker() {
         return (
           <div
             key={value}
-            className={`${styles.entry} ${isSeen ? styles.entrySeen : ''}`}
+            className={`${styles.entry} ${mode === 'ranked' ? styles.entryRanked : ''} ${isSeen ? styles.entrySeen : ''}`}
             onClick={() => mode === 'ranked' && gameStore.getState().toggleTileTracked(value)}
             title={mode === 'ranked' ? 'Click to mark as seen' : undefined}
           >

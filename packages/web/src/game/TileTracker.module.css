@@ -26,12 +26,16 @@
   justify-content: space-between;
   padding: 3px 4px;
   border-radius: var(--radius-sm);
-  cursor: pointer;
+  cursor: default;
   user-select: none;
   transition: background 0.1s;
 }
 
-.entry:hover {
+.entryRanked {
+  cursor: pointer;
+}
+
+.entryRanked:hover {
   background: var(--tile-bg);
 }
 

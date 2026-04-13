@@ -11,6 +11,9 @@ export function useGameSocket(
   const socketRef = useRef<ReturnType<typeof io> | null>(null)
 
   useEffect(() => {
+    // Skip connection if gameId is empty (invalid game link guard in GamePage)
+    if (!gameId) return
+
     const socket = io(WS_URL, {
       path: '/ws',
       query: { token, game_id: gameId },

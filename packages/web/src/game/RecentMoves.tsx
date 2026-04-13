@@ -8,8 +8,8 @@ export function RecentMoves() {
 
   return (
     <div className={styles.moves}>
-      {recentMoves.map((move, i) => (
-        <div key={i} className={styles.entry}>
+      {recentMoves.map((move) => (
+        <div key={move.seq} className={styles.entry}>
           <div className={styles.header}>
             <span className={styles.player}>{move.display_name}</span>
             {move.score_delta > 0 && (
