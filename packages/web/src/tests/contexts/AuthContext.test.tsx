@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AuthProvider } from '../../contexts/AuthContext'
 import { useAuth } from '../../hooks/useAuth'
+
+vi.mock('../../api/auth', () => ({
+  login: vi.fn(),
+  register: vi.fn(),
+}))
+import * as authApi from '../../api/auth'
 
 // Helper component that exposes auth state
 function AuthDisplay() {
@@ -48,5 +54,18 @@ describe('AuthContext', () => {
     await userEvent.click(screen.getByText('logout'))
     expect(screen.getByText('no user')).toBeInTheDocument()
     expect(localStorage.getItem('token')).toBeNull()
+  })
+
+  it('sets user and token after successful login', async () => {
+    vi.mocked(authApi.login).mockResolvedValue({
+      token: 'new-tok',
+      user: { id: '2', username: 'bob', display_name: 'Bob' },
+    })
+    render(<AuthProvider><AuthDisplay /><LoginButton /></AuthProvider>)
+    expect(screen.getByText('no user')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('login'))
+    await waitFor(() => expect(screen.getByText('user:bob')).toBeInTheDocument())
+    expect(localStorage.getItem('token')).toBe('new-tok')
   })
 })

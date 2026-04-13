@@ -16,7 +16,13 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 function loadStoredUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem('user')
-    return raw ? (JSON.parse(raw) as AuthUser) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (typeof parsed?.id !== 'string' || typeof parsed?.username !== 'string') {
+      localStorage.removeItem('user')
+      return null
+    }
+    return parsed as AuthUser
   } catch {
     return null
   }
@@ -24,20 +30,30 @@ function loadStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadStoredUser)
-  const [isLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const login = useCallback(async (username: string, password: string) => {
-    const res = await apiLogin(username, password)
-    setJwt(res.token)
-    localStorage.setItem('user', JSON.stringify(res.user))
-    setUser(res.user)
+    setIsLoading(true)
+    try {
+      const res = await apiLogin(username, password)
+      setJwt(res.token)
+      localStorage.setItem('user', JSON.stringify(res.user))
+      setUser(res.user)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   const register = useCallback(async (username: string, password: string, displayName: string) => {
-    const res = await apiRegister(username, password, displayName)
-    setJwt(res.token)
-    localStorage.setItem('user', JSON.stringify(res.user))
-    setUser(res.user)
+    setIsLoading(true)
+    try {
+      const res = await apiRegister(username, password, displayName)
+      setJwt(res.token)
+      localStorage.setItem('user', JSON.stringify(res.user))
+      setUser(res.user)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   const logout = useCallback(() => {
