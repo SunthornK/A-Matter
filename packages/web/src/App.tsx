@@ -6,11 +6,11 @@ import { useAuth } from './hooks/useAuth'
 
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import GamePage from './pages/GamePage'
 
 // Lazy placeholders — will be filled in Plan 6 and 7
 const LobbyPage = () => <div>Lobby — coming soon</div>
 const JoinPage = () => <div>Join — coming soon</div>
-const GamePage = () => <div>Game — coming soon</div>
 const ProfilePage = () => <div>Profile — coming soon</div>
 const LeaderboardPage = () => <div>Leaderboard — coming soon</div>
 const AdminPage = () => <div>Admin — coming soon</div>
