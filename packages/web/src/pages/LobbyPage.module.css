@@ -1,0 +1,103 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 40px;
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.greeting {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stats {
+  color: var(--text-muted);
+  font-size: 14px;
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.statValue {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 860px;
+}
+
+.card {
+  padding: 24px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s;
+}
+
+.card:hover {
+  border-color: var(--text-muted);
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cardDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.joinInput {
+  background: var(--tile-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+}
+
+.joinInput:focus {
+  border-color: var(--green);
+}
+
+.queueStatus {
+  font-size: 13px;
+  color: var(--gold);
+  margin-top: 8px;
+}
+
+.inviteBox {
+  background: var(--tile-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gold);
+  margin-top: 4px;
+  word-break: break-all;
+}
