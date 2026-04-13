@@ -55,9 +55,11 @@ export function Cell({ row, col }: CellProps) {
     !cell && !pending && bonusType === 'b2eq' ? styles.bonus2eq : '',
     !cell && !pending && bonusType === 'b3pc' ? styles.bonus3pc : '',
     !cell && !pending && bonusType === 'b2pc' ? styles.bonus2pc : '',
-    cell && !pending ? styles.occupied : '',
-    cell && cell.owner === myPlayerId ? styles.occupiedMine : '',
-    cell && cell.owner !== myPlayerId && cell.owner !== null ? styles.occupiedOpponent : '',
+    cell && !pending ? (
+      cell.owner === myPlayerId ? styles.occupiedMine :
+      cell.owner !== null ? styles.occupiedOpponent :
+      styles.occupied
+    ) : '',
     pending ? styles.pending : '',
   ].filter(Boolean).join(' ')
 
