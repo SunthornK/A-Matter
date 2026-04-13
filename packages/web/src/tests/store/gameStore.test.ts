@@ -153,15 +153,16 @@ describe('applyMoveResult', () => {
       bag: 85,
       turn_number: 2,
       current_turn_player_id: 'p2',
+      consecutive_passes: 0,
       board: Array.from({ length: 15 }, () => Array(15).fill(null)),
       players: [
         { player_id: 'p1', display_name: 'Alice', score: 20, time_remaining_ms: 590_000, consecutive_passes: 0, tiles_remaining: 7 },
         { player_id: 'p2', display_name: 'Bob', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
       ],
       expression: '3+2',
-      result: '5',
+      result: 5,
       score_delta: 20,
-      placed_tiles: [{ value: '3', row: 7, col: 7 }],
+      placed_tiles: [{ value: '3', row: 7, col: 7, points: 2 }],
     }
 
     gameStore.getState().applyMoveResult(moveResult)
@@ -177,14 +178,14 @@ describe('applyMoveResult', () => {
     gameStore.getState().applyGameState(baseState)
     const moveResult: MoveResultPayload = {
       seq: 2, type: 'place', player_id: 'p1', bag: 85, turn_number: 2,
-      current_turn_player_id: 'p2',
+      current_turn_player_id: 'p2', consecutive_passes: 0,
       board: Array.from({ length: 15 }, () => Array(15).fill(null)),
       players: [
         { player_id: 'p1', display_name: 'Alice', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
         { player_id: 'p2', display_name: 'Bob', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
       ],
-      expression: '3', result: '3', score_delta: 0,
-      placed_tiles: [{ value: '3', row: 7, col: 7 }],
+      expression: '3', result: 3, score_delta: 0,
+      placed_tiles: [{ value: '3', row: 7, col: 7, points: 2 }],
     }
     gameStore.getState().applyMoveResult(moveResult)
     expect(gameStore.getState().tileTracker['3']).toBe(1)
