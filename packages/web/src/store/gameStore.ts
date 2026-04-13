@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { makePendingKey, parsePendingKey } from '../utils/board'
+import { makePendingKey } from '../utils/board'
 import type {
   GameStatePayload,
   MoveResultPayload,
@@ -90,13 +90,14 @@ interface GameStore {
   resetGame: () => void
 }
 
-const EMPTY_BOARD: (BoardCell | null)[][] = Array.from({ length: 15 }, () => Array(15).fill(null))
+const makeEmptyBoard = (): (BoardCell | null)[][] =>
+  Array.from({ length: 15 }, () => Array(15).fill(null))
 
 const initialState = {
   status: 'idle' as const,
   gameId: null,
   mode: null,
-  board: EMPTY_BOARD,
+  board: makeEmptyBoard(),
   rack: Array(8).fill(null) as (RackTile | null)[],
   confirmedRack: Array(8).fill(null) as (RackTile | null)[],
   pendingPlacements: {} as Record<string, PendingTile>,
@@ -295,6 +296,7 @@ export const gameStore = create<GameStore>((set, get) => ({
   reorderRack: (fromIndex, toIndex) => {
     const state = get()
     const newRack = [...state.rack]
+    if (fromIndex < 0 || fromIndex >= newRack.length || toIndex < 0 || toIndex >= newRack.length) return
     const moved = newRack[fromIndex]
     newRack[fromIndex] = newRack[toIndex] ?? null
     newRack[toIndex] = moved ?? null
@@ -310,7 +312,7 @@ export const gameStore = create<GameStore>((set, get) => ({
     })
   },
 
-  resetGame: () => set({ ...initialState }),
+  resetGame: () => set({ ...initialState, board: makeEmptyBoard() }),
 }))
 
 // Named selector hook for ergonomic subscriptions

@@ -140,3 +140,101 @@ describe('resetGame', () => {
     expect(s.gameOverResult).toBeNull()
   })
 })
+
+describe('applyMoveResult', () => {
+  it('updates board, bag, players, clears pending, appends move log', () => {
+    gameStore.getState().applyGameState(baseState)
+    gameStore.getState().placeTile(0, 7, 7)
+
+    const moveResult: MoveResultPayload = {
+      seq: 2,
+      type: 'place',
+      player_id: 'p1',
+      bag: 85,
+      turn_number: 2,
+      current_turn_player_id: 'p2',
+      board: Array.from({ length: 15 }, () => Array(15).fill(null)),
+      players: [
+        { player_id: 'p1', display_name: 'Alice', score: 20, time_remaining_ms: 590_000, consecutive_passes: 0, tiles_remaining: 7 },
+        { player_id: 'p2', display_name: 'Bob', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
+      ],
+      expression: '3+2',
+      result: '5',
+      score_delta: 20,
+      placed_tiles: [{ value: '3', row: 7, col: 7 }],
+    }
+
+    gameStore.getState().applyMoveResult(moveResult)
+    const s = gameStore.getState()
+    expect(s.bag).toBe(85)
+    expect(s.currentTurnPlayerId).toBe('p2')
+    expect(Object.keys(s.pendingPlacements)).toHaveLength(0)
+    expect(s.recentMoves).toHaveLength(1)
+    expect(s.recentMoves[0]).toMatchObject({ type: 'place', player_id: 'p1', display_name: 'Alice', score_delta: 20 })
+  })
+
+  it('auto-increments tileTracker in quickplay mode', () => {
+    gameStore.getState().applyGameState(baseState)
+    const moveResult: MoveResultPayload = {
+      seq: 2, type: 'place', player_id: 'p1', bag: 85, turn_number: 2,
+      current_turn_player_id: 'p2',
+      board: Array.from({ length: 15 }, () => Array(15).fill(null)),
+      players: [
+        { player_id: 'p1', display_name: 'Alice', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
+        { player_id: 'p2', display_name: 'Bob', score: 0, time_remaining_ms: 600_000, consecutive_passes: 0, tiles_remaining: 8 },
+      ],
+      expression: '3', result: '3', score_delta: 0,
+      placed_tiles: [{ value: '3', row: 7, col: 7 }],
+    }
+    gameStore.getState().applyMoveResult(moveResult)
+    expect(gameStore.getState().tileTracker['3']).toBe(1)
+  })
+})
+
+describe('setOpponentDisconnected', () => {
+  it('sets disconnected=true and records timestamp', () => {
+    gameStore.getState().setOpponentDisconnected(true)
+    const s = gameStore.getState()
+    expect(s.opponentDisconnected).toBe(true)
+    expect(s.opponentDisconnectedAt).toBeTypeOf('number')
+  })
+
+  it('clears disconnected and timestamp', () => {
+    gameStore.getState().setOpponentDisconnected(true)
+    gameStore.getState().setOpponentDisconnected(false)
+    const s = gameStore.getState()
+    expect(s.opponentDisconnected).toBe(false)
+    expect(s.opponentDisconnectedAt).toBeNull()
+  })
+})
+
+describe('reorderRack', () => {
+  it('swaps two rack slots', () => {
+    gameStore.getState().applyGameState(baseState)
+    // rack[0] = { value: '3', points: 2 }, rack[1] = null
+    gameStore.getState().reorderRack(0, 1)
+    const s = gameStore.getState()
+    expect(s.rack[0]).toBeNull()
+    expect(s.rack[1]).toEqual({ value: '3', points: 2 })
+  })
+
+  it('does nothing when index out of bounds', () => {
+    gameStore.getState().applyGameState(baseState)
+    const before = gameStore.getState().rack.map(t => t?.value ?? null)
+    gameStore.getState().reorderRack(0, 99)
+    const after = gameStore.getState().rack.map(t => t?.value ?? null)
+    expect(after).toEqual(before)
+  })
+})
+
+describe('toggleTileTracked', () => {
+  it('sets 0 → 1', () => {
+    gameStore.getState().toggleTileTracked('3')
+    expect(gameStore.getState().tileTracker['3']).toBe(1)
+  })
+  it('resets nonzero → 0', () => {
+    gameStore.getState().toggleTileTracked('3')
+    gameStore.getState().toggleTileTracked('3')
+    expect(gameStore.getState().tileTracker['3']).toBe(0)
+  })
+})
