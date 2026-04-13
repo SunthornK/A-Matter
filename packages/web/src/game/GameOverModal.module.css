@@ -1,0 +1,40 @@
+.reason {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.result {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.win { color: var(--green); }
+.loss { color: var(--red); }
+.draw { color: var(--gold); }
+
+.scores {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.scoreRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--tile-bg);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+.scoreValue {
+  font-weight: 700;
+  font-size: 16px;
+}
