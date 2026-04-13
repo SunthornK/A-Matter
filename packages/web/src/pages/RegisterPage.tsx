@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/Button/Button'
-import styles from './RegisterPage.module.css'
+import styles from './AuthPage.module.css'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
