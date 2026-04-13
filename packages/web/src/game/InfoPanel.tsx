@@ -4,11 +4,7 @@ import { RecentMoves } from './RecentMoves'
 import { formatScore } from '../utils/format'
 import styles from './InfoPanel.module.css'
 
-interface InfoPanelProps {
-  emit: (event: string, data?: unknown) => void
-}
-
-export function InfoPanel({ emit: _emit }: InfoPanelProps) {
+export function InfoPanel() {
   const players = useGameStore(s => s.players)
   const myPlayerId = useGameStore(s => s.myPlayerId)
   const currentTurnPlayerId = useGameStore(s => s.currentTurnPlayerId)

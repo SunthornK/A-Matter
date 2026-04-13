@@ -38,7 +38,7 @@ export default function GamePage() {
         </div>
         <ActionButtons emit={emit} />
       </div>
-      <InfoPanel emit={emit} />
+      <InfoPanel />
       {gameOverResult && <GameOverModal />}
     </div>
   )

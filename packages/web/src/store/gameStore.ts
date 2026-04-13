@@ -183,7 +183,7 @@ export const gameStore = create<GameStore>((set, get) => ({
     const state = get()
     const displayName = state.players.find(p => p.playerId === payload.player_id)?.displayName ?? payload.player_id
     const newEntry: MoveLogEntry = {
-      seq: payload.seq ?? state.recentMoves.length,
+      seq: payload.seq ?? (state.recentMoves[0]?.seq ?? -1) + 1,
       type: payload.type,
       player_id: payload.player_id,
       display_name: displayName,
