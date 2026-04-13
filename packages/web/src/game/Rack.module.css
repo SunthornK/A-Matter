@@ -1,0 +1,8 @@
+.rack {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 540px;
+  padding: 8px 0;
+}

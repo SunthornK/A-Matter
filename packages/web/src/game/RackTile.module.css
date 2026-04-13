@@ -1,0 +1,55 @@
+.tile {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--tile-bg);
+  border: 2px solid var(--tile-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tile-text);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.1s, background 0.1s;
+  position: relative;
+}
+
+.tile:hover {
+  border-color: var(--text-muted);
+}
+
+.selected {
+  border-color: var(--green);
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.flipped {
+  background: #1a1a22;
+  color: transparent;
+  border-color: var(--text-muted);
+}
+
+.flipped::after {
+  content: '?';
+  position: absolute;
+  color: var(--text-muted);
+}
+
+.points {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 8px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.empty {
+  background: transparent;
+  border: 2px dashed var(--border);
+  cursor: default;
+}
