@@ -28,9 +28,8 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
-  // 'role' field may not be in the stored user yet — treat as non-admin
-  const asAny = user as unknown as Record<string, unknown>
-  if (asAny['role'] !== 'admin') {
+  // TODO: server must include role in the JWT payload and login response
+  if (user.role !== 'admin') {
     return <Navigate to="/lobby" replace />
   }
   return <>{children}</>

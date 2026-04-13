@@ -3,6 +3,7 @@ export interface AuthUser {
   id: string
   username: string
   display_name: string
+  role?: 'admin' | 'user'
 }
 
 export interface AuthResponse {
