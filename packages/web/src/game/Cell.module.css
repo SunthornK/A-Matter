@@ -1,0 +1,65 @@
+.cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  background: var(--tile-bg);
+  transition: background 0.1s;
+}
+
+.cell:hover {
+  background: #252530;
+}
+
+/* Center star */
+.center::after {
+  content: '★';
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Bonus squares */
+.bonus3eq { background: var(--bonus-3eq); color: #c4a0ff; }
+.bonus2eq { background: var(--bonus-2eq); color: #90c4ff; }
+.bonus3pc { background: var(--bonus-3pc); color: #ffaaaa; }
+.bonus2pc { background: var(--bonus-2pc); color: #90e090; }
+
+/* Occupied by placed tile */
+.occupied {
+  background: var(--tile-bg);
+  color: var(--tile-text);
+}
+
+.occupiedMine {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
+.occupiedOpponent {
+  border-color: var(--text-muted);
+}
+
+/* Pending tile (not yet submitted) */
+.pending {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Flash red animation for invalid move */
+.invalid {
+  animation: flashRed 0.4s ease-out;
+}
+
+@keyframes flashRed {
+  0% { background: var(--red-dim); border-color: var(--red); }
+  100% { background: var(--tile-bg); border-color: var(--border); }
+}
