@@ -41,3 +41,34 @@ export function getQueue(type: 'ranked' | 'quickplay'): readonly QueueEntry[] {
 export function isInQueue(userId: string): boolean {
   return Object.values(queues).some((q) => q.some((e) => e.userId === userId))
 }
+
+// ── Matched-games map ──────────────────────────────────────────────────────
+
+interface MatchedEntry {
+  gameId: string
+  matchedAt: number
+}
+
+const MATCH_EXPIRY_MS = 5 * 60 * 1000
+
+const matchedGames = new Map<string, MatchedEntry>()
+
+export function recordMatch(userId: string, gameId: string): void {
+  matchedGames.set(userId, { gameId, matchedAt: Date.now() })
+}
+
+/** Returns the gameId and clears the entry on first read. Returns null if not found or expired. */
+export function getMatch(userId: string): string | null {
+  const entry = matchedGames.get(userId)
+  if (!entry) return null
+  if (Date.now() - entry.matchedAt > MATCH_EXPIRY_MS) {
+    matchedGames.delete(userId)
+    return null
+  }
+  matchedGames.delete(userId)
+  return entry.gameId
+}
+
+export function clearMatch(userId: string): void {
+  matchedGames.delete(userId)
+}

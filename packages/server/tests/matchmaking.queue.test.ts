@@ -1,0 +1,46 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import {
+  addToQueue, removeFromQueue, isInQueue,
+  recordMatch, getMatch, clearMatch,
+} from '../src/services/matchmaking.queue'
+
+beforeEach(() => {
+  removeFromQueue('user-1')
+  removeFromQueue('user-2')
+  clearMatch('user-1')
+  clearMatch('user-2')
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+describe('recordMatch / getMatch / clearMatch', () => {
+  it('getMatch returns gameId after recordMatch', () => {
+    recordMatch('user-1', 'game-abc')
+    expect(getMatch('user-1')).toBe('game-abc')
+  })
+
+  it('getMatch clears the entry on first read — second call returns null', () => {
+    recordMatch('user-1', 'game-abc')
+    getMatch('user-1')
+    expect(getMatch('user-1')).toBeNull()
+  })
+
+  it('getMatch returns null after 5-minute expiry', () => {
+    vi.useFakeTimers()
+    recordMatch('user-1', 'game-abc')
+    vi.advanceTimersByTime(5 * 60 * 1000 + 1)
+    expect(getMatch('user-1')).toBeNull()
+  })
+
+  it('clearMatch removes entry before it is read', () => {
+    recordMatch('user-1', 'game-abc')
+    clearMatch('user-1')
+    expect(getMatch('user-1')).toBeNull()
+  })
+
+  it('getMatch returns null for an unknown userId', () => {
+    expect(getMatch('nobody')).toBeNull()
+  })
+})
