@@ -9,8 +9,15 @@ const app = await buildApp()
 try {
   await app.listen({ port: config.port, host: '0.0.0.0' })
   createSocketServer(app.server, prisma)
-  startMatchLoop(prisma)
+  const matchLoopInterval = startMatchLoop(prisma)
   console.log(`Server running on port ${config.port}`)
+
+  process.on('SIGTERM', async () => {
+    clearInterval(matchLoopInterval)
+    await app.close()
+    await prisma.$disconnect()
+    process.exit(0)
+  })
 } catch (err) {
   app.log.error(err)
   process.exit(1)

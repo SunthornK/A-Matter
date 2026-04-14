@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { buildApp } from '../src/app'
 import { prisma } from '@a-matter/db'
-import { recordMatch, clearMatch } from '../src/services/matchmaking.queue'
+import { recordMatch, clearMatch, clearAllQueues } from '../src/services/matchmaking.queue'
 
 let aliceToken: string
 let aliceId: string
@@ -16,6 +16,8 @@ beforeAll(async () => {
     payload: { username: `alice_mm_${ts}`, email: `alice_mm_${ts}@test.com`, password: 'Password123!', display_name: 'Alice MM' },
   })
   const aBody = JSON.parse(aRes.body)
+  expect(aRes.statusCode).toBe(201)
+  expect(aBody.user?.id).toBeTruthy()
   aliceToken = aBody.token
   aliceId = aBody.user.id
 
@@ -31,6 +33,11 @@ beforeAll(async () => {
 afterAll(async () => {
   await prisma.user.deleteMany({ where: { username: { in: [`alice_mm_${ts}`, `bob_mm_${ts}`] } } })
   await prisma.$disconnect()
+})
+
+afterEach(() => {
+  clearAllQueues()
+  clearMatch(aliceId)
 })
 
 describe('POST /api/matchmaking/join', () => {

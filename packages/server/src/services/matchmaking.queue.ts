@@ -77,3 +77,17 @@ export function clearMatch(userId: string): void {
 export function clearAllMatches(): void {
   matchedGames.clear()
 }
+
+/** For use in tests only — clears both in-memory queues. */
+export function clearAllQueues(): void {
+  queues.ranked.length = 0
+  queues.quickplay.length = 0
+}
+
+export function getQueueEntry(userId: string): QueueEntry | undefined {
+  for (const queue of Object.values(queues)) {
+    const entry = queue.find((e) => e.userId === userId)
+    if (entry) return entry
+  }
+  return undefined
+}
