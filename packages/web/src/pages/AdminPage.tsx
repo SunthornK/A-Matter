@@ -9,6 +9,7 @@ export default function AdminPage() {
   const [banInput, setBanInput] = useState('')
   const [banBusy, setBanBusy] = useState(false)
   const [banError, setBanError] = useState<string | null>(null)
+  const [forceEndError, setForceEndError] = useState<string | null>(null)
 
   const { data: games, isLoading } = useQuery({
     queryKey: ['admin', 'activeGames'],
@@ -17,8 +18,13 @@ export default function AdminPage() {
   })
 
   async function handleForceEnd(gameId: string) {
-    await forceEndGame(gameId)
-    queryClient.invalidateQueries({ queryKey: ['admin', 'activeGames'] })
+    setForceEndError(null)
+    try {
+      await forceEndGame(gameId)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'activeGames'] })
+    } catch (err) {
+      setForceEndError(err instanceof Error ? err.message : 'Failed to end game')
+    }
   }
 
   async function handleBan() {
@@ -41,6 +47,7 @@ export default function AdminPage() {
 
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Active games</div>
+        {forceEndError && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 8 }}>{forceEndError}</p>}
         {isLoading && <p className={styles.empty}>Loading…</p>}
         {!isLoading && games && (
           games.length === 0 ? (

@@ -5,6 +5,8 @@ import { getLeaderboard } from '../api/leaderboard'
 import { Button } from '../components/Button/Button'
 import styles from './LeaderboardPage.module.css'
 
+const PAGE_SIZE = 20
+
 const COUNTRY_OPTIONS = [
   { value: '', label: 'Global' },
   { value: 'TH', label: 'Thailand' },
@@ -91,7 +93,7 @@ export default function LeaderboardPage() {
             <span style={{ color: 'var(--text-muted)', fontSize: 13, alignSelf: 'center' }}>
               Page {page}
             </span>
-            <Button variant="secondary" size="sm" disabled={data.entries.length < 20} onClick={() => setPage(p => p + 1)}>
+            <Button variant="secondary" size="sm" disabled={data.entries.length < PAGE_SIZE} onClick={() => setPage(p => p + 1)}>
               Next
             </Button>
           </div>

@@ -11,7 +11,6 @@ export default function LobbyPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [joiningCode, setJoiningCode] = useState('')
-  const [queueMode, setQueueMode] = useState<'ranked' | 'quickplay' | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,8 +46,7 @@ export default function LobbyPage() {
     }
   }
 
-  async function handleQueue(mode: 'ranked' | 'quickplay') {
-    setQueueMode(mode)
+  function handleQueue() {
     setError('Matchmaking not yet available — use private rooms for now.')
   }
 
@@ -82,17 +80,13 @@ export default function LobbyPage() {
         <div className={styles.card}>
           <div className={styles.cardTitle}>Ranked</div>
           <p className={styles.cardDesc}>Compete for rating. Matched against players near your skill.</p>
-          <Button onClick={() => handleQueue('ranked')} disabled={busy}>
-            {queueMode === 'ranked' ? 'Finding match…' : 'Play now'}
-          </Button>
+          <Button onClick={handleQueue} disabled={busy}>Play now</Button>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardTitle}>Quickplay</div>
           <p className={styles.cardDesc}>Casual game, no rating change. Faster queue times.</p>
-          <Button onClick={() => handleQueue('quickplay')} disabled={busy}>
-            {queueMode === 'quickplay' ? 'Finding match…' : 'Play now'}
-          </Button>
+          <Button onClick={handleQueue} disabled={busy}>Play now</Button>
         </div>
 
         <div className={styles.card}>

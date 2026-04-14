@@ -18,6 +18,7 @@ export default function JoinPage() {
 
   async function handleJoin() {
     if (!inviteCode) return
+    if (!isLoggedIn && !displayName.trim()) return
     setBusy(true)
     setError(null)
 
