@@ -86,7 +86,9 @@ async function matchQueue(
   type: 'ranked' | 'quickplay',
   prisma: PrismaClient,
 ): Promise<void> {
-  const queue = [...getQueue(type)] as QueueEntry[]
+  const queue = ([...getQueue(type)] as QueueEntry[]).sort(
+    (a, b) => a.joinedAt.getTime() - b.joinedAt.getTime(),
+  )
   for (let i = 0; i < queue.length; i++) {
     const a = queue[i]!
     for (let j = i + 1; j < queue.length; j++) {
