@@ -11,6 +11,7 @@ const mockPrisma = {
   room: { create: vi.fn() },
   game: { create: vi.fn(), update: vi.fn() },
   gamePlayer: { create: vi.fn() },
+  $transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => fn(mockPrisma)),
 } as unknown as PrismaClient
 
 const USER_IDS = ['user-1', 'user-2', 'user-3']

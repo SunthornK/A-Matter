@@ -35,58 +35,60 @@ async function createMatchedGame(
   const rack2 = bag.slice(8, 16)
   const remainingBag = bag.slice(16)
 
-  const room = await prisma.room.create({
-    data: {
-      type,
-      timePerSideMs: 1320000,
-      status: 'in_game',
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    },
-  })
+  return prisma.$transaction(async (tx) => {
+    const room = await tx.room.create({
+      data: {
+        type,
+        timePerSideMs: 1320000,
+        status: 'in_game',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    })
 
-  const game = await prisma.game.create({
-    data: {
-      roomId: room.id,
-      mode: type,
-      status: 'active',
-      boardState: emptyBoard as unknown as never,
-      tileBag: remainingBag as unknown as never,
-    },
-  })
+    const game = await tx.game.create({
+      data: {
+        roomId: room.id,
+        mode: type,
+        status: 'active',
+        boardState: emptyBoard as unknown as never,
+        tileBag: remainingBag as unknown as never,
+      },
+    })
 
-  const player1 = await prisma.gamePlayer.create({
-    data: {
-      gameId: game.id,
-      userId: userId1,
-      seat: 1,
-      rack: rack1 as unknown as never,
-      timeRemainingMs: 1320000,
-    },
-  })
+    const player1 = await tx.gamePlayer.create({
+      data: {
+        gameId: game.id,
+        userId: userId1,
+        seat: 1,
+        rack: rack1 as unknown as never,
+        timeRemainingMs: 1320000,
+      },
+    })
 
-  await prisma.gamePlayer.create({
-    data: {
-      gameId: game.id,
-      userId: userId2,
-      seat: 2,
-      rack: rack2 as unknown as never,
-      timeRemainingMs: 1320000,
-    },
-  })
+    await tx.gamePlayer.create({
+      data: {
+        gameId: game.id,
+        userId: userId2,
+        seat: 2,
+        rack: rack2 as unknown as never,
+        timeRemainingMs: 1320000,
+      },
+    })
 
-  await prisma.game.update({
-    where: { id: game.id },
-    data: { currentTurnPlayerId: player1.id },
-  })
+    await tx.game.update({
+      where: { id: game.id },
+      data: { currentTurnPlayerId: player1.id },
+    })
 
-  return game.id
+    return game.id
+  })
 }
 
 async function matchQueue(
   type: 'ranked' | 'quickplay',
   prisma: PrismaClient,
 ): Promise<void> {
-  const queue = ([...getQueue(type)] as QueueEntry[]).sort(
+  const queue = [...getQueue(type)].sort(
     (a, b) => a.joinedAt.getTime() - b.joinedAt.getTime(),
   )
   for (let i = 0; i < queue.length; i++) {
