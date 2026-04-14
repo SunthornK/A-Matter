@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
@@ -49,6 +49,10 @@ beforeEach(() => {
   vi.mocked(mmApi.getMatchStatus).mockResolvedValue({ status: 'not_queued' })
 })
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('useMatchmaking', () => {
   it('initial state is idle with no queueType', () => {
     renderHook()
@@ -95,5 +99,19 @@ describe('useMatchmaking', () => {
     await waitFor(() => expect(screen.getByTestId('state').textContent).toBe('idle'))
     expect(screen.getByTestId('type').textContent).toBe('')
     expect(mmApi.leaveQueue).toHaveBeenCalled()
+  })
+
+  it('stops polling after match is found', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.mocked(mmApi.getMatchStatus).mockResolvedValue({ status: 'matched', game_id: 'g99' })
+    renderHook()
+    await userEvent.click(screen.getByRole('button', { name: 'join-ranked' }))
+    await waitFor(() => expect(screen.getByTestId('game-page')).toBeInTheDocument())
+    const callCountAfterNav = vi.mocked(mmApi.getMatchStatus).mock.calls.length
+    // Advance past two polling intervals (2 × 2500ms); call count must not increase
+    vi.advanceTimersByTime(6000)
+    await Promise.resolve()
+    expect(vi.mocked(mmApi.getMatchStatus).mock.calls.length).toBe(callCountAfterNav)
+    vi.useRealTimers()
   })
 })
