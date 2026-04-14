@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, skipToken } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
+import { useMatchmaking } from '../hooks/useMatchmaking'
 import { getProfile } from '../api/users'
 import { createRoom, joinRoom } from '../api/rooms'
 import { Button } from '../components/Button/Button'
@@ -13,11 +15,19 @@ export default function LobbyPage() {
   const [joiningCode, setJoiningCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { queueState, queueType, join, cancel } = useMatchmaking()
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.username],
     queryFn: user ? () => getProfile(user.username) : skipToken,
   })
+
+  // Cancel queue on unmount if still searching
+  useEffect(() => {
+    return () => {
+      cancel().catch(() => {})
+    }
+  }, [cancel])
 
   async function handleCreateRoom() {
     setBusy(true)
@@ -46,9 +56,7 @@ export default function LobbyPage() {
     }
   }
 
-  function handleQueue() {
-    setError('Matchmaking not yet available — use private rooms for now.')
-  }
+  const isQueued = queueState === 'queued'
 
   return (
     <div className={styles.page}>
@@ -80,19 +88,33 @@ export default function LobbyPage() {
         <div className={styles.card}>
           <div className={styles.cardTitle}>Ranked</div>
           <p className={styles.cardDesc}>Compete for rating. Matched against players near your skill.</p>
-          <Button onClick={handleQueue} disabled={busy}>Play now</Button>
+          {isQueued && queueType === 'ranked' ? (
+            <>
+              <p className={styles.queueStatus}>Searching for opponent…</p>
+              <Button variant="secondary" onClick={cancel}>Cancel</Button>
+            </>
+          ) : (
+            <Button onClick={() => join('ranked')} disabled={isQueued || busy}>Play now</Button>
+          )}
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardTitle}>Quickplay</div>
           <p className={styles.cardDesc}>Casual game, no rating change. Faster queue times.</p>
-          <Button onClick={handleQueue} disabled={busy}>Play now</Button>
+          {isQueued && queueType === 'quickplay' ? (
+            <>
+              <p className={styles.queueStatus}>Searching for opponent…</p>
+              <Button variant="secondary" onClick={cancel}>Cancel</Button>
+            </>
+          ) : (
+            <Button onClick={() => join('quickplay')} disabled={isQueued || busy}>Play now</Button>
+          )}
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardTitle}>Host a game</div>
           <p className={styles.cardDesc}>Get an invite link to share with a friend.</p>
-          <Button onClick={handleCreateRoom} disabled={busy}>
+          <Button onClick={handleCreateRoom} disabled={busy || isQueued}>
             {busy ? 'Creating…' : 'Create private room'}
           </Button>
         </div>
@@ -107,7 +129,7 @@ export default function LobbyPage() {
             onChange={e => setJoiningCode(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleJoinRoom()}
           />
-          <Button onClick={handleJoinRoom} disabled={busy || !joiningCode.trim()}>
+          <Button onClick={handleJoinRoom} disabled={busy || isQueued || !joiningCode.trim()}>
             Join
           </Button>
         </div>

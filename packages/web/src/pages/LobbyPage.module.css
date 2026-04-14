@@ -83,3 +83,9 @@
 .joinInput:focus {
   border-color: var(--green);
 }
+
+.queueStatus {
+  font-size: 13px;
+  color: var(--gold);
+  margin-top: 4px;
+}

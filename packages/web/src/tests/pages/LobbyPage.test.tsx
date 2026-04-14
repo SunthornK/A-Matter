@@ -6,6 +6,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../../contexts/AuthContext'
 import LobbyPage from '../../pages/LobbyPage'
 
+vi.mock('../../api/matchmaking', () => ({
+  joinQueue: vi.fn(),
+  leaveQueue: vi.fn(),
+  getMatchStatus: vi.fn(),
+}))
+
+import * as mmApi from '../../api/matchmaking'
+
 vi.mock('../../api/users', () => ({
   getProfile: vi.fn(),
 }))
@@ -46,6 +54,9 @@ beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
   vi.mocked(usersApi.getProfile).mockResolvedValue(mockProfile)
+  vi.mocked(mmApi.joinQueue).mockResolvedValue(undefined)
+  vi.mocked(mmApi.leaveQueue).mockResolvedValue(undefined)
+  vi.mocked(mmApi.getMatchStatus).mockResolvedValue({ status: 'not_queued' })
 })
 
 describe('LobbyPage', () => {
@@ -61,6 +72,25 @@ describe('LobbyPage', () => {
     renderLobby()
     await waitFor(() => screen.getByText(/private room/i))
     await userEvent.click(screen.getByRole('button', { name: /create private room/i }))
+    await waitFor(() => expect(screen.getByText('game')).toBeInTheDocument())
+  })
+
+  it('clicking Play now on Ranked calls joinQueue("ranked") and shows cancel button', async () => {
+    vi.mocked(mmApi.joinQueue).mockResolvedValue(undefined)
+    vi.mocked(mmApi.getMatchStatus).mockResolvedValue({ status: 'queued', queue_type: 'ranked' })
+    renderLobby()
+    const playButtons = await screen.findAllByRole('button', { name: /play now/i })
+    await userEvent.click(playButtons[0]!)
+    await waitFor(() => expect(mmApi.joinQueue).toHaveBeenCalledWith('ranked'))
+    await waitFor(() => expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument())
+  })
+
+  it('navigates to /game/:gameId when match is found via polling', async () => {
+    vi.mocked(mmApi.joinQueue).mockResolvedValue(undefined)
+    vi.mocked(mmApi.getMatchStatus).mockResolvedValue({ status: 'matched', game_id: 'g55' })
+    renderLobby()
+    const playButtons = await screen.findAllByRole('button', { name: /play now/i })
+    await userEvent.click(playButtons[0]!)
     await waitFor(() => expect(screen.getByText('game')).toBeInTheDocument())
   })
 })
