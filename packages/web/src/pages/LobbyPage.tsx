@@ -15,7 +15,7 @@ export default function LobbyPage() {
   const [joiningCode, setJoiningCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { queueState, queueType, join, cancel } = useMatchmaking()
+  const { queueState, queueType, join, cancel, error: queueError } = useMatchmaking()
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.username],
@@ -83,6 +83,7 @@ export default function LobbyPage() {
       </div>
 
       {error && <p style={{ color: 'var(--red)', marginBottom: 16, fontSize: 13 }}>{error}</p>}
+      {queueError && <p style={{ color: 'var(--red)', marginBottom: 16, fontSize: 13 }}>{queueError}</p>}
 
       <div className={styles.cards}>
         <div className={styles.card}>

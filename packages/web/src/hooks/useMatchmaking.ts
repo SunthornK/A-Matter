@@ -37,10 +37,11 @@ export function useMatchmaking() {
   }, [])
 
   const cancel = useCallback(async () => {
+    if (queueState === 'idle') return
     await leaveQueue()
     setQueueState('idle')
     setQueueType(null)
-  }, [])
+  }, [queueState])
 
   return { queueState, queueType, join, cancel, error }
 }
