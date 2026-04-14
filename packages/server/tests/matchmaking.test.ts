@@ -159,13 +159,17 @@ describe('GET /api/matchmaking/status', () => {
     const body = JSON.parse(res.body)
     expect(body.status).toBe('matched')
     expect(body.game_id).toBe('game-test-xyz')
-    // getMatch cleared it on read — confirm second call returns not_queued
+    // getMatch is not consumed on read — second call still returns matched
     const res2 = await app.inject({
       method: 'GET',
       url: '/api/matchmaking/status',
       headers: { authorization: `Bearer ${aliceToken}` },
     })
-    expect(JSON.parse(res2.body).status).toBe('not_queued')
+    const body2 = JSON.parse(res2.body)
+    expect(body2.status).toBe('matched')
+    expect(body2.game_id).toBe('game-test-xyz')
+    // Explicitly clear it after testing
+    clearMatch(aliceId)
     await app.close()
   })
 

@@ -20,10 +20,10 @@ describe('recordMatch / getMatch / clearMatch', () => {
     expect(getMatch('user-1')).toBe('game-abc')
   })
 
-  it('getMatch clears the entry on first read — second call returns null', () => {
+  it('getMatch returns the same gameId on repeated calls until expiry', () => {
     recordMatch('user-1', 'game-abc')
-    getMatch('user-1')
-    expect(getMatch('user-1')).toBeNull()
+    expect(getMatch('user-1')).toBe('game-abc')
+    expect(getMatch('user-1')).toBe('game-abc')
   })
 
   it('getMatch returns null after 5-minute expiry', () => {

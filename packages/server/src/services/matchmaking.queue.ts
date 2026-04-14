@@ -1,3 +1,9 @@
+// NOTE: This module uses in-memory state (module-level singletons).
+// Matchmaking only works correctly in a single-process deployment.
+// To scale horizontally, replace the queue arrays and matchedGames map
+// with a shared store (e.g., Redis) and extract the match loop to a
+// dedicated worker.
+
 export interface QueueEntry {
   userId: string
   glickoRating: number
@@ -57,7 +63,7 @@ export function recordMatch(userId: string, gameId: string): void {
   matchedGames.set(userId, { gameId, matchedAt: Date.now() })
 }
 
-/** Returns the gameId and clears the entry on first read. Returns null if not found or expired. */
+/** Returns the gameId for the matched game. Returns null if not found or expired. */
 export function getMatch(userId: string): string | null {
   const entry = matchedGames.get(userId)
   if (!entry) return null
@@ -65,7 +71,6 @@ export function getMatch(userId: string): string | null {
     matchedGames.delete(userId)
     return null
   }
-  matchedGames.delete(userId)
   return entry.gameId
 }
 

@@ -18,6 +18,13 @@ try {
     await prisma.$disconnect()
     process.exit(0)
   })
+
+  process.on('SIGINT', async () => {
+    clearInterval(matchLoopInterval)
+    await app.close()
+    await prisma.$disconnect()
+    process.exit(0)
+  })
 } catch (err) {
   app.log.error(err)
   process.exit(1)
