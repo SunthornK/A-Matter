@@ -7,13 +7,11 @@ import { useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
+import LobbyPage from './pages/LobbyPage'
+import JoinPage from './pages/JoinPage'
 import ProfilePage from './pages/ProfilePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminPage from './pages/AdminPage'
-
-// Lazy placeholders — will be filled in Plan 6
-const LobbyPage = () => <div>Lobby — coming soon</div>
-const JoinPage = () => <div>Join — coming soon</div>
 
 const queryClient = new QueryClient({
   defaultOptions: {
