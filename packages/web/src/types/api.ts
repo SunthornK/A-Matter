@@ -79,6 +79,13 @@ export interface ActiveGame {
   players: Array<{ display_name: string; score: number }>
 }
 
+// Matchmaking
+export interface MatchStatusResponse {
+  status: 'matched' | 'queued' | 'not_queued'
+  game_id?: string
+  queue_type?: 'ranked' | 'quickplay'
+}
+
 // API error shape
 export interface ApiErrorBody {
   error: string
