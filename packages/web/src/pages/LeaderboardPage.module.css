@@ -1,0 +1,88 @@
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.heading {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.countrySelect {
+  background: var(--tile-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 12px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+}
+
+.countrySelect:focus { border-color: var(--green); }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.table tr:hover td { background: var(--panel-bg); }
+
+.rank {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 48px;
+}
+
+.rankTop { color: var(--gold); }
+
+.playerName {
+  font-weight: 600;
+  cursor: pointer;
+}
+.playerName:hover { color: var(--green); }
+
+.username { color: var(--text-muted); font-size: 12px; }
+
+.rating {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.empty { color: var(--text-muted); font-size: 14px; padding: 24px 0; }
