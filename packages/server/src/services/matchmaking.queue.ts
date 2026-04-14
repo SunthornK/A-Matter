@@ -61,7 +61,7 @@ export function recordMatch(userId: string, gameId: string): void {
 export function getMatch(userId: string): string | null {
   const entry = matchedGames.get(userId)
   if (!entry) return null
-  if (Date.now() - entry.matchedAt > MATCH_EXPIRY_MS) {
+  if (Date.now() - entry.matchedAt >= MATCH_EXPIRY_MS) {
     matchedGames.delete(userId)
     return null
   }
@@ -71,4 +71,9 @@ export function getMatch(userId: string): string | null {
 
 export function clearMatch(userId: string): void {
   matchedGames.delete(userId)
+}
+
+/** For use in tests only — clears the entire matched-games map. */
+export function clearAllMatches(): void {
+  matchedGames.clear()
 }

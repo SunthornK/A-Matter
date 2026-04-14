@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import {
   addToQueue, removeFromQueue, isInQueue,
-  recordMatch, getMatch, clearMatch,
+  recordMatch, getMatch, clearMatch, clearAllMatches,
 } from '../src/services/matchmaking.queue'
 
 beforeEach(() => {
   removeFromQueue('user-1')
   removeFromQueue('user-2')
-  clearMatch('user-1')
-  clearMatch('user-2')
+  clearAllMatches()
 })
 
 afterEach(() => {
@@ -30,8 +29,15 @@ describe('recordMatch / getMatch / clearMatch', () => {
   it('getMatch returns null after 5-minute expiry', () => {
     vi.useFakeTimers()
     recordMatch('user-1', 'game-abc')
-    vi.advanceTimersByTime(5 * 60 * 1000 + 1)
+    vi.advanceTimersByTime(5 * 60 * 1000)
     expect(getMatch('user-1')).toBeNull()
+  })
+
+  it('getMatch returns gameId just before expiry', () => {
+    vi.useFakeTimers()
+    recordMatch('user-1', 'game-abc')
+    vi.advanceTimersByTime(5 * 60 * 1000 - 1)
+    expect(getMatch('user-1')).toBe('game-abc')
   })
 
   it('clearMatch removes entry before it is read', () => {
