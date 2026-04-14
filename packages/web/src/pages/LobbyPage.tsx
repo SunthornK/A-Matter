@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, skipToken } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
 import { getProfile } from '../api/users'
 import { createRoom, joinRoom } from '../api/rooms'
@@ -11,15 +11,13 @@ export default function LobbyPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [joiningCode, setJoiningCode] = useState('')
-  const [createdInvite, setCreatedInvite] = useState<string | null>(null)
   const [queueMode, setQueueMode] = useState<'ranked' | 'quickplay' | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.username],
-    queryFn: () => getProfile(user!.username),
-    enabled: !!user,
+    queryFn: user ? () => getProfile(user.username) : skipToken,
   })
 
   async function handleCreateRoom() {
@@ -27,7 +25,6 @@ export default function LobbyPage() {
     setError(null)
     try {
       const res = await createRoom()
-      setCreatedInvite(res.invite_code)
       navigate(`/game/${res.game_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create room')
@@ -104,11 +101,6 @@ export default function LobbyPage() {
           <Button onClick={handleCreateRoom} disabled={busy}>
             {busy ? 'Creating…' : 'Create private room'}
           </Button>
-          {createdInvite && (
-            <div className={styles.inviteBox}>
-              Invite: {createdInvite}
-            </div>
-          )}
         </div>
 
         <div className={styles.card}>

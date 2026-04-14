@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { joinRoom } from '../api/rooms'
-import { generateGuestToken, setGuestToken, getJwt } from '../utils/token'
+import { generateGuestToken, setGuestToken } from '../utils/token'
 import { Button } from '../components/Button/Button'
 import styles from './JoinPage.module.css'
 
@@ -14,7 +14,7 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const isLoggedIn = getJwt() !== null
+  const isLoggedIn = user !== null
 
   async function handleJoin() {
     if (!inviteCode) return
