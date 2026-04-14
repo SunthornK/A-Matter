@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { addToQueue, removeFromQueue } from '../services/matchmaking.queue'
+import { addToQueue, removeFromQueue, getQueue, isInQueue, getMatch } from '../services/matchmaking.queue'
 
 export async function matchmakingRoutes(app: FastifyInstance) {
   // POST /api/matchmaking/join
@@ -44,6 +44,28 @@ export async function matchmakingRoutes(app: FastifyInstance) {
       const user = req.user as { user_id: string }
       removeFromQueue(user.user_id)
       return reply.send({ status: 'left' })
+    },
+  )
+
+  // GET /api/matchmaking/status
+  app.get(
+    '/api/matchmaking/status',
+    { preHandler: [app.authenticate] },
+    async (req, reply) => {
+      const user = req.user as { user_id: string }
+
+      const gameId = getMatch(user.user_id)
+      if (gameId) {
+        return reply.send({ status: 'matched', game_id: gameId })
+      }
+
+      if (isInQueue(user.user_id)) {
+        const allQueued = [...getQueue('ranked'), ...getQueue('quickplay')]
+        const entry = allQueued.find(e => e.userId === user.user_id)
+        return reply.send({ status: 'queued', queue_type: entry?.queueType ?? null })
+      }
+
+      return reply.send({ status: 'not_queued' })
     },
   )
 }
