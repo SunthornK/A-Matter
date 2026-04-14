@@ -9,6 +9,7 @@ export function useMatchmaking() {
   const navigate = useNavigate()
   const [queueState, setQueueState] = useState<QueueState>('idle')
   const [queueType, setQueueType] = useState<'ranked' | 'quickplay' | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const { data: statusData } = useQuery({
     queryKey: ['matchmaking', 'status'],
@@ -18,16 +19,21 @@ export function useMatchmaking() {
   })
 
   useEffect(() => {
-    if (statusData?.status === 'matched' && statusData.game_id) {
+    if (queueState === 'queued' && statusData?.status === 'matched' && statusData.game_id) {
       setQueueState('matched')
       navigate(`/game/${statusData.game_id}`)
     }
-  }, [statusData, navigate])
+  }, [statusData, navigate, queueState])
 
   const join = useCallback(async (type: 'ranked' | 'quickplay') => {
-    await joinQueue(type)
-    setQueueType(type)
-    setQueueState('queued')
+    setError(null)
+    try {
+      await joinQueue(type)
+      setQueueType(type)
+      setQueueState('queued')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join queue')
+    }
   }, [])
 
   const cancel = useCallback(async () => {
@@ -36,5 +42,5 @@ export function useMatchmaking() {
     setQueueType(null)
   }, [])
 
-  return { queueState, queueType, join, cancel }
+  return { queueState, queueType, join, cancel, error }
 }

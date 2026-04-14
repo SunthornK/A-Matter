@@ -15,11 +15,12 @@ import * as mmApi from '../../api/matchmaking'
 
 // Test component that exposes hook state + actions as DOM elements
 function TestComponent() {
-  const { queueState, queueType, join, cancel } = useMatchmaking()
+  const { queueState, queueType, join, cancel, error } = useMatchmaking()
   return (
     <div>
       <span data-testid="state">{queueState}</span>
       <span data-testid="type">{queueType ?? ''}</span>
+      <span data-testid="error">{error ?? ''}</span>
       <button onClick={() => join('ranked')}>join-ranked</button>
       <button onClick={() => join('quickplay')}>join-quickplay</button>
       <button onClick={() => cancel()}>cancel</button>
@@ -74,6 +75,16 @@ describe('useMatchmaking', () => {
     renderHook()
     await userEvent.click(screen.getByRole('button', { name: 'join-ranked' }))
     await waitFor(() => expect(screen.getByTestId('game-page')).toBeInTheDocument())
+  })
+
+  it('exposes error when joinQueue fails', async () => {
+    vi.mocked(mmApi.joinQueue).mockRejectedValueOnce(new Error('Network error'))
+    renderHook()
+    await userEvent.click(screen.getByRole('button', { name: 'join-ranked' }))
+    await waitFor(() =>
+      expect(screen.getByTestId('error').textContent).toBe('Network error'),
+    )
+    expect(screen.getByTestId('state').textContent).toBe('idle')
   })
 
   it('cancel calls leaveQueue and resets state to idle', async () => {
