@@ -8,6 +8,7 @@ import { userRoutes } from './routes/users'
 import { leaderboardRoutes } from './routes/leaderboard'
 import { roomRoutes } from './routes/rooms'
 import { matchmakingRoutes } from './routes/matchmaking'
+import { adminRoutes } from './routes/admin'
 import { authenticate } from './middleware/authenticate'
 
 export async function buildApp() {
@@ -30,6 +31,7 @@ export async function buildApp() {
   await app.register(leaderboardRoutes)
   await app.register(roomRoutes)
   await app.register(matchmakingRoutes)
+  await app.register(adminRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))
 

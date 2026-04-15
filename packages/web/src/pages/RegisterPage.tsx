@@ -19,8 +19,12 @@ export default function RegisterPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await register(username, email, password, displayName)
-      navigate('/lobby')
+      const resUser = await register(username, email, password, displayName)
+      if (resUser.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/lobby')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

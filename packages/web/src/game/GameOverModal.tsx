@@ -8,8 +8,7 @@ import styles from './GameOverModal.module.css'
 const REASON_LABELS: Record<string, string> = {
   score: 'Game over',
   timeout: 'Time ran out',
-  forfeit: 'Opponent forfeited',
-  resign: 'Resignation',
+  forfeit: 'Game forfeited',
   stalemate: 'Stalemate',
 }
 

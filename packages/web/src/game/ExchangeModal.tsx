@@ -44,7 +44,7 @@ export function ExchangeModal({ emit, onClose }: ExchangeModalProps) {
                   className={`${styles.tile} ${selected.includes(i) ? styles.tileSelected : ''} ${!canExchange ? styles.tileDisabled : ''}`}
                   onClick={() => canExchange && toggleTile(i)}
                 >
-                  {tile.value}
+                  {tile.type === 'blank' ? '' : tile.value}
                 </div>
               ) : null
             )}

@@ -18,11 +18,18 @@ export function ActionButtons({ emit }: ActionButtonsProps) {
 
   function handlePlay() {
     if (!hasPending) return
-    const tiles = Object.entries(pendingPlacements).map(([key, pending]) => {
+    const placements = Object.entries(pendingPlacements).map(([key, pending]) => {
       const [row, col] = parsePendingKey(key)
-      return { value: pending.value, row, col }
+      return {
+        tile_id: pending.tileId,
+        rack_index: pending.rackIndex,
+        row,
+        col,
+        dual_choice: pending.dualChoice ?? null,
+        blank_designation: pending.blankDesignation ?? null,
+      }
     })
-    emit('move:place', { tiles })
+    emit('move:place', { placements })
   }
 
   function handlePass() {

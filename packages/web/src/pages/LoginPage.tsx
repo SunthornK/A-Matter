@@ -17,8 +17,12 @@ export default function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(username, password)
-      navigate('/lobby')
+      const resUser = await login(username, password)
+      if (resUser.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/lobby')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {

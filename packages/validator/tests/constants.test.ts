@@ -30,11 +30,13 @@ describe('tile bag', () => {
     expect(bag.filter((t) => t.type === 'equals')).toHaveLength(11)
   })
 
-  it('number tiles 0-3 have 5 copies each', () => {
+  it('number tile counts match A-Math spec', () => {
     const bag = createTileBag()
-    for (const n of ['0', '1', '2', '3']) {
-      expect(bag.filter((t) => t.value === n)).toHaveLength(5)
-    }
+    // Per A-Math spec: 0:5, 1:6, 2:6, 3:5
+    expect(bag.filter((t) => t.value === '0')).toHaveLength(5)
+    expect(bag.filter((t) => t.value === '1')).toHaveLength(6)
+    expect(bag.filter((t) => t.value === '2')).toHaveLength(6)
+    expect(bag.filter((t) => t.value === '3')).toHaveLength(5)
   })
 
   it('TILE_DEFINITIONS sums to 100', () => {

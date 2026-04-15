@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { startTestServer, connectSocket, waitForEvent, createTestGame, cleanupTestGame, type TestServer, type TestGame } from './helpers'
-import type { GameStatePayload, TimerSyncPayload } from '../../src/game/types'
+import type { TimerSyncPayload } from '../../src/game/types'
 
 let server: TestServer
 let game: TestGame
@@ -19,7 +19,7 @@ describe('timer', () => {
   it('receives timer:sync within 15 seconds of connecting', async () => {
     const alice = connectSocket(server.port, game.aliceToken, game.gameId)
     const bob = connectSocket(server.port, game.bobToken, game.gameId)
-    const aliceStateP = waitForEvent<GameStatePayload>(alice, 'game:state')
+    const aliceStateP = waitForEvent(alice, 'game:state')
     alice.connect()
     bob.connect()
     await aliceStateP

@@ -16,12 +16,17 @@ const basePlayer = {
   tiles_remaining: 8,
 }
 
+const tile3 = {
+  tile_id: '3_01', value: '3', type: 'number' as const, display_value: '3',
+  is_blank: false, blank_designation: null, dual_choice: null, points: 2,
+}
+
 const baseState: GameStatePayload = {
   seq: 1,
   game_id: 'g1',
   mode: 'quickplay',
   board: Array.from({ length: 15 }, () => Array(15).fill(null)),
-  rack: [{ value: '3', points: 2 }, null, null, null, null, null, null, null],
+  rack: [tile3, null, null, null, null, null, null, null],
   bag: 90,
   turn_number: 1,
   current_turn_player_id: 'p1',
@@ -41,7 +46,7 @@ describe('applyGameState', () => {
     expect(s.bag).toBe(90)
     expect(s.myPlayerId).toBe('p1')
     expect(s.players).toHaveLength(2)
-    expect(s.rack[0]).toEqual({ value: '3', points: 2 })
+    expect(s.rack[0]).toMatchObject({ value: '3', points: 2 })
   })
 })
 
@@ -51,7 +56,7 @@ describe('placeTile / returnTile', () => {
     gameStore.getState().placeTile(0, 7, 7)
     const s = gameStore.getState()
     expect(s.rack[0]).toBeNull()
-    expect(s.pendingPlacements['7,7']).toEqual({ value: '3', rackIndex: 0 })
+    expect(s.pendingPlacements['7,7']).toMatchObject({ value: '3', rackIndex: 0 })
   })
 
   it('returns tile from board back to rack', () => {
@@ -59,7 +64,7 @@ describe('placeTile / returnTile', () => {
     gameStore.getState().placeTile(0, 7, 7)
     gameStore.getState().returnTile('7,7')
     const s = gameStore.getState()
-    expect(s.rack[0]).toEqual({ value: '3', points: 2 })
+    expect(s.rack[0]).toMatchObject({ value: '3', points: 2 })
     expect(s.pendingPlacements['7,7']).toBeUndefined()
   })
 
@@ -77,7 +82,7 @@ describe('clearPending', () => {
     gameStore.getState().clearPending()
     const s = gameStore.getState()
     expect(Object.keys(s.pendingPlacements)).toHaveLength(0)
-    expect(s.rack[0]).toEqual({ value: '3', points: 2 })
+    expect(s.rack[0]).toMatchObject({ value: '3', points: 2 })
   })
 })
 
@@ -216,7 +221,7 @@ describe('reorderRack', () => {
     gameStore.getState().reorderRack(0, 1)
     const s = gameStore.getState()
     expect(s.rack[0]).toBeNull()
-    expect(s.rack[1]).toEqual({ value: '3', points: 2 })
+    expect(s.rack[1]).toMatchObject({ value: '3', points: 2 })
   })
 
   it('does nothing when index out of bounds', () => {

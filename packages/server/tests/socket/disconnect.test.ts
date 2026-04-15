@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { startTestServer, connectSocket, waitForEvent, createTestGame, cleanupTestGame, type TestServer, type TestGame } from './helpers'
-import type { GameStatePayload, GameOverPayload } from '../../src/game/types'
 
 let server: TestServer
 let game: TestGame
@@ -23,11 +22,11 @@ describe('disconnect + reconnect', () => {
     alice.connect()
     bob.connect()
     await Promise.all([
-      waitForEvent<GameStatePayload>(alice, 'game:state'),
-      waitForEvent<GameStatePayload>(bob, 'game:state'),
+      waitForEvent(alice, 'game:state'),
+      waitForEvent(bob, 'game:state'),
     ])
 
-    const disconnectP = waitForEvent<{ player_id: string }>(bob, 'player:disconnect')
+    const disconnectP = waitForEvent(bob, 'player:disconnect')
     alice.disconnect()
     const disconnectEvent = await disconnectP
     expect(disconnectEvent.player_id).toBe(freshGame.alicePlayerId)
@@ -43,19 +42,19 @@ describe('disconnect + reconnect', () => {
     alice.connect()
     bob.connect()
     await Promise.all([
-      waitForEvent<GameStatePayload>(alice, 'game:state'),
-      waitForEvent<GameStatePayload>(bob, 'game:state'),
+      waitForEvent(alice, 'game:state'),
+      waitForEvent(bob, 'game:state'),
     ])
 
     // Alice disconnects
     alice.disconnect()
-    await waitForEvent<{ player_id: string }>(bob, 'player:disconnect')
+    await waitForEvent(bob, 'player:disconnect')
 
     // Alice reconnects within grace period
     const alice2 = connectSocket(server.port, freshGame.aliceToken, freshGame.gameId)
-    const reconnectP = waitForEvent<{ player_id: string }>(bob, 'player:reconnect')
+    const reconnectP = waitForEvent(bob, 'player:reconnect')
     alice2.connect()
-    await waitForEvent<GameStatePayload>(alice2, 'game:state')
+    await waitForEvent(alice2, 'game:state')
     const reconnectEvent = await reconnectP
     expect(reconnectEvent.player_id).toBe(freshGame.alicePlayerId)
 
@@ -73,12 +72,12 @@ describe('disconnect + reconnect', () => {
     alice.connect()
     bob.connect()
     await Promise.all([
-      waitForEvent<GameStatePayload>(alice, 'game:state'),
-      waitForEvent<GameStatePayload>(bob, 'game:state'),
+      waitForEvent(alice, 'game:state'),
+      waitForEvent(bob, 'game:state'),
     ])
 
     alice.disconnect()
-    await waitForEvent<{ player_id: string }>(bob, 'player:disconnect')
+    await waitForEvent(bob, 'player:disconnect')
 
     // Verify game is still active (within grace window)
     const { prisma } = await import('@a-matter/db')

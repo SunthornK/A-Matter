@@ -24,11 +24,17 @@ export default function JoinPage() {
 
     try {
       if (!isLoggedIn) {
+        // Generate token before the request but only store it on success,
+        // so it isn't accidentally sent as the auth header.
         const guestToken = generateGuestToken()
+        const res = await joinRoom(inviteCode, displayName.trim(), guestToken)
         setGuestToken(guestToken)
+        sessionStorage.setItem('guestDisplayName', displayName.trim())
+        navigate(`/game/${res.game_id}`)
+      } else {
+        const res = await joinRoom(inviteCode)
+        navigate(`/game/${res.game_id}`)
       }
-      const res = await joinRoom(inviteCode, isLoggedIn ? undefined : displayName)
-      navigate(`/game/${res.game_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join game')
     } finally {

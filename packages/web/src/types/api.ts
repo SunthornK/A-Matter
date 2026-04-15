@@ -71,6 +71,11 @@ export interface RoomResponse {
   invite_code: string
 }
 
+export interface RoomStatusResponse {
+  status: 'waiting' | 'in_game' | 'closed'
+  game_id: string | null
+}
+
 // Admin
 export interface ActiveGame {
   id: string

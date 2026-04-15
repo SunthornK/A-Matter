@@ -70,22 +70,34 @@ export async function userRoutes(app: FastifyInstance) {
         skip: offset,
       })
 
-      const games = gamePlayers.map((gp) => ({
-        game_id: gp.game.id,
-        mode: gp.game.mode,
-        status: gp.game.status,
-        end_reason: gp.game.endReason,
-        started_at: gp.game.startedAt,
-        finished_at: gp.game.finishedAt,
-        my_score: gp.score,
-        players: gp.game.players.map((p) => ({
-          user_id: p.userId,
-          username: p.user?.username ?? null,
-          display_name: p.user?.displayName ?? null,
-          score: p.score,
-          seat: p.seat,
-        })),
-      }))
+      const games = gamePlayers.map((gp) => {
+        const opponent = gp.game.players.find(p => p.userId !== gp.userId) || gp.game.players.find(p => p.seat !== gp.seat)
+        let result = null
+        if (gp.game.status === 'finished') {
+          if (gp.score > (opponent?.score ?? 0)) result = 'win'
+          else if (gp.score < (opponent?.score ?? 0)) result = 'loss'
+          else result = 'draw'
+        }
+        return {
+          id: gp.game.id,
+          mode: gp.game.mode,
+          status: gp.game.status,
+          created_at: gp.game.startedAt,
+          completed_at: gp.game.finishedAt,
+          my_score: gp.score,
+          opponent_score: opponent?.score ?? 0,
+          result,
+          opponent: opponent ? {
+            id: opponent.userId || 'guest',
+            display_name: opponent.user?.displayName || 'Guest',
+            username: opponent.user?.username || null
+          } : {
+            id: 'unknown',
+            display_name: 'Unknown',
+            username: null
+          }
+        }
+      })
 
       return { games, limit, offset }
     },

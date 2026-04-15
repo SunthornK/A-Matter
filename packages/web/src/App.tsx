@@ -9,9 +9,11 @@ import RegisterPage from './pages/RegisterPage'
 import GamePage from './pages/GamePage'
 import LobbyPage from './pages/LobbyPage'
 import JoinPage from './pages/JoinPage'
+import WaitingRoomPage from './pages/WaitingRoomPage'
 import ProfilePage from './pages/ProfilePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminPage from './pages/AdminPage'
+import { MainLayout } from './components/MainLayout/MainLayout'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,25 +37,31 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/join/:inviteCode" element={<JoinPage />} />
             <Route
-              path="/lobby"
-              element={<RequireAuth><LobbyPage /></RequireAuth>}
+              path="/waiting/:inviteCode"
+              element={<RequireAuth><WaitingRoomPage /></RequireAuth>}
             />
             <Route
               path="/game/:gameId"
               element={<RequireAuth allowGuest><GamePage /></RequireAuth>}
             />
-            <Route
-              path="/profile/:username"
-              element={<RequireAuth><ProfilePage /></RequireAuth>}
-            />
-            <Route
-              path="/leaderboard"
-              element={<RequireAuth><LeaderboardPage /></RequireAuth>}
-            />
-            <Route
-              path="/admin"
-              element={<RequireAdmin><AdminPage /></RequireAdmin>}
-            />
+            <Route element={<MainLayout />}>
+              <Route
+                path="/lobby"
+                element={<RequireAuth><LobbyPage /></RequireAuth>}
+              />
+              <Route
+                path="/profile/:username"
+                element={<RequireAuth><ProfilePage /></RequireAuth>}
+              />
+              <Route
+                path="/leaderboard"
+                element={<RequireAuth><LeaderboardPage /></RequireAuth>}
+              />
+              <Route
+                path="/admin"
+                element={<RequireAdmin><AdminPage /></RequireAdmin>}
+              />
+            </Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>

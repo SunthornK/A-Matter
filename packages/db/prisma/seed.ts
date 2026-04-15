@@ -8,13 +8,14 @@ async function main() {
   // Create two test users with upsert (safe to re-run)
   const alice = await prisma.user.upsert({
     where: { username: 'alice' },
-    update: {},
+    update: { role: 'admin' },
     create: {
       username: 'alice',
       email: 'alice@example.com',
+      role: 'admin',
       // bcrypt hash of 'password123' — dev only
       passwordHash: '$2b$10$Qnc/LVYjnCLCiuVMpKUHveT8EGlxIwAkF8lZ7C3KvDfhiQaHv3eCu',
-      displayName: 'Alice',
+      displayName: 'Alice (Admin)',
       country: 'TH',
       glickoRating: 1600.0,
       glickoRd: 150.0,

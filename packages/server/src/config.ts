@@ -10,7 +10,7 @@ export const config = {
   port: parseInt(process.env['PORT'] ?? '3000', 10),
   databaseUrl: required('DATABASE_URL'),
   jwtSecret: process.env['JWT_SECRET'] ?? 'dev-secret-change-in-production',
-  jwtTtlSeconds: 60 * 15, // 15 minutes
+  jwtTtlSeconds: 60 * 60 * 24 * 7, // 7 days
   bcryptRounds: 10,
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
 }

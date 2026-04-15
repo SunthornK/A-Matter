@@ -42,13 +42,13 @@ describe('JoinPage — guest (no JWT)', () => {
     expect(screen.getByLabelText(/display name/i)).toBeInTheDocument()
   })
 
-  it('generates guest token and calls joinRoom with display_name', async () => {
+  it('generates guest token and calls joinRoom with display_name and token', async () => {
     vi.mocked(roomsApi.joinRoom).mockResolvedValue({ game_id: 'g1', invite_code: 'ABC123' })
     renderJoin(false)
     await userEvent.type(screen.getByLabelText(/display name/i), 'Guestinho')
     await userEvent.click(screen.getByRole('button', { name: /join/i }))
     await waitFor(() => {
-      expect(roomsApi.joinRoom).toHaveBeenCalledWith('ABC123', 'Guestinho')
+      expect(roomsApi.joinRoom).toHaveBeenCalledWith('ABC123', 'Guestinho', expect.any(String))
     })
     expect(sessionStorage.getItem('guestToken')).toHaveLength(64)
   })
@@ -68,12 +68,12 @@ describe('JoinPage — logged-in user (JWT present)', () => {
     expect(screen.queryByLabelText(/display name/i)).not.toBeInTheDocument()
   })
 
-  it('calls joinRoom with invite_code only (no display_name)', async () => {
+  it('calls joinRoom with invite_code only (no display_name or guest_token)', async () => {
     vi.mocked(roomsApi.joinRoom).mockResolvedValue({ game_id: 'g2', invite_code: 'ABC123' })
     renderJoin(true)
     await userEvent.click(screen.getByRole('button', { name: /join/i }))
     await waitFor(() => {
-      expect(roomsApi.joinRoom).toHaveBeenCalledWith('ABC123', undefined)
+      expect(roomsApi.joinRoom).toHaveBeenCalledWith('ABC123')
     })
   })
 })

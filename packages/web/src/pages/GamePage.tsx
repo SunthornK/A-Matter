@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useGameSocket } from '../hooks/useGameSocket'
-import { useGameStore } from '../store/gameStore'
-import { getToken } from '../utils/token'
+import { useGameStore, gameStore } from '../store/gameStore'
+import { getJwt, getGuestToken } from '../utils/token'
 import { Board } from '../game/Board'
 import { Rack } from '../game/Rack'
 import { TileTracker } from '../game/TileTracker'
@@ -9,15 +9,18 @@ import { InfoPanel } from '../game/InfoPanel'
 import { ActionButtons } from '../game/ActionButtons'
 import { DisconnectBanner } from '../game/DisconnectBanner'
 import { GameOverModal } from '../game/GameOverModal'
+import { DualChoiceModal } from '../game/DualChoiceModal'
 import styles from './GamePage.module.css'
 
 export default function GamePage() {
   const { gameId } = useParams<{ gameId: string }>()
-  const token = getToken() ?? ''
+  const jwt = getJwt()
+  const guestToken = getGuestToken()
   const status = useGameStore(s => s.status)
   const gameOverResult = useGameStore(s => s.gameOverResult)
+  const lastError = useGameStore(s => s.lastError)
 
-  const emit = useGameSocket(gameId ?? '', token)
+  const emit = useGameSocket(gameId ?? '', jwt ?? '', guestToken ?? '')
 
   if (!gameId) return <div className={styles.connecting}>Invalid game link.</div>
 
@@ -39,6 +42,12 @@ export default function GamePage() {
         <ActionButtons emit={emit} />
       </div>
       <InfoPanel />
+      {lastError && (
+        <div className={styles.errorToast} onClick={() => gameStore.getState().setError(null)}>
+          {lastError}
+        </div>
+      )}
+      <DualChoiceModal />
       {gameOverResult && <GameOverModal />}
     </div>
   )

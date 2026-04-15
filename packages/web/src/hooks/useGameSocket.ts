@@ -6,7 +6,8 @@ const WS_URL = import.meta.env.VITE_WS_URL ?? ''
 
 export function useGameSocket(
   gameId: string,
-  token: string,
+  jwt: string,
+  guestToken: string,
 ): (event: string, data?: unknown) => void {
   const socketRef = useRef<ReturnType<typeof io> | null>(null)
 
@@ -14,9 +15,16 @@ export function useGameSocket(
     // Skip connection if gameId is empty (invalid game link guard in GamePage)
     if (!gameId) return
 
+    const query: Record<string, string> = { game_id: gameId }
+    if (guestToken) {
+      query.guest_token = guestToken
+    } else {
+      query.token = jwt
+    }
+
     const socket = io(WS_URL, {
       path: '/ws',
-      query: { token, game_id: gameId },
+      query,
       transports: ['websocket'],
     })
     socketRef.current = socket
@@ -57,6 +65,10 @@ export function useGameSocket(
       }
     })
 
+    socket.on('error', ({ message }: { code: string; message: string }) => {
+      gameStore.getState().setError(message)
+    })
+
     socket.on('server:ping', () => socket.emit('server:pong'))
 
     return () => {
@@ -64,7 +76,7 @@ export function useGameSocket(
       socketRef.current = null
       gameStore.getState().resetGame()
     }
-  }, [gameId, token])
+  }, [gameId, jwt, guestToken])
 
   return useCallback((event: string, data?: unknown) => {
     socketRef.current?.emit(event, data)

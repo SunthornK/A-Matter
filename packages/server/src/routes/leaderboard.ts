@@ -25,20 +25,21 @@ export async function leaderboardRoutes(app: FastifyInstance) {
         skip: offset,
       })
 
-      const players = users.map((u, i) => ({
+      const entries = users.map((u, i) => ({
         rank: offset + i + 1,
-        id: u.id,
+        user_id: u.id,
         username: u.username,
         display_name: u.displayName,
         country: u.country,
-        avatar_url: u.avatarUrl,
-        glicko_rating: u.glickoRating,
-        glicko_rd: u.glickoRd,
+        rating: u.glickoRating,
         games_played: u.gamesPlayed,
         games_won: u.gamesWon,
       }))
 
-      return { players, limit, offset }
+      const total = await app.prisma.user.count({ where: { gamesPlayed: { gt: 0 } } })
+      const page = Math.floor(offset / limit) + 1
+
+      return { entries, total, page }
     },
   )
 }

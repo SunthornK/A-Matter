@@ -16,14 +16,21 @@ interface BoardCell {
   bonusType: 'b3eq' | 'b2eq' | 'b3pc' | 'b2pc' | null
 }
 
-interface RackTile {
+export interface RackTile {
+  tile_id: string
   value: string
+  type: 'number' | 'operator' | 'equals' | 'dual_operator' | 'blank'
   points: number
 }
 
-interface PendingTile {
+export interface PendingTile {
+  tileId: string
   value: string
+  type: 'number' | 'operator' | 'equals' | 'dual_operator' | 'blank'
+  points: number
   rackIndex: number
+  dualChoice: '+' | '-' | '×' | '÷' | null
+  blankDesignation: string | null
 }
 
 interface PlayerState {
@@ -38,6 +45,7 @@ interface PlayerState {
 interface GameStore {
   // connection
   status: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error'
+  lastError: string | null
 
   // game metadata
   gameId: string | null
@@ -46,9 +54,12 @@ interface GameStore {
   // board + tiles
   board: (BoardCell | null)[][]
   rack: (RackTile | null)[]
-  confirmedRack: (RackTile | null)[]   // last server-confirmed rack, used to restore points on returnTile
+  confirmedRack: (RackTile | null)[]
   pendingPlacements: Record<string, PendingTile>
   bag: number
+
+  // dual/blank tile choice pending
+  pendingChoice: { row: number; col: number; rackIndex: number } | null
 
   // turn
   turnNumber: number
@@ -79,9 +90,11 @@ interface GameStore {
   applyRackUpdate: (payload: RackUpdatePayload) => void
   applyTimerSync: (payload: TimerSyncPayload) => void
   applyGameOver: (payload: GameOverPayload) => void
-  placeTile: (rackIndex: number, row: number, col: number) => void
+  setError: (msg: string | null) => void
+  placeTile: (rackIndex: number, row: number, col: number, dualChoice?: '+' | '-' | '×' | '÷' | null, blankDesignation?: string | null) => void
   returnTile: (key: string) => void
   clearPending: () => void
+  setPendingChoice: (choice: { row: number; col: number; rackIndex: number } | null) => void
   selectRackTile: (index: number | null) => void
   toggleRackFlip: (index: number) => void
   setOpponentDisconnected: (disconnected: boolean) => void
@@ -95,6 +108,7 @@ const makeEmptyBoard = (): (BoardCell | null)[][] =>
 
 const initialState = {
   status: 'idle' as const,
+  lastError: null,
   gameId: null,
   mode: null,
   board: makeEmptyBoard(),
@@ -102,6 +116,7 @@ const initialState = {
   confirmedRack: Array(8).fill(null) as (RackTile | null)[],
   pendingPlacements: {} as Record<string, PendingTile>,
   bag: 0,
+  pendingChoice: null,
   turnNumber: 0,
   currentTurnPlayerId: null,
   players: [],
@@ -123,16 +138,23 @@ export const gameStore = create<GameStore>((set, get) => ({
       row.map(cell =>
         cell
           ? {
-              value: cell.value,
+              value: cell.display_value ?? cell.value,
               owner: cell.owner,
-              isBonus: cell.is_bonus,
-              bonusType: cell.bonus_type,
+              isBonus: false,
+              bonusType: null,
             }
           : null
       )
     )
     const rack: (RackTile | null)[] = payload.rack.map(t =>
-      t ? { value: t.value, points: t.points } : null
+      t
+        ? {
+            tile_id: t.tile_id,
+            value: t.value,
+            type: t.type ?? 'number',
+            points: t.points,
+          }
+        : null
     )
     const players: PlayerState[] = payload.players.map(p => ({
       playerId: p.player_id,
@@ -149,12 +171,14 @@ export const gameStore = create<GameStore>((set, get) => ({
       rack,
       confirmedRack: rack,
       pendingPlacements: {},
+      pendingChoice: null,
       bag: payload.bag,
       turnNumber: payload.turn_number,
       currentTurnPlayerId: payload.current_turn_player_id,
       players,
       myPlayerId: payload.my_player_id,
       selectedRackIndex: null,
+      lastError: null,
     })
   },
 
@@ -163,10 +187,10 @@ export const gameStore = create<GameStore>((set, get) => ({
       row.map(cell =>
         cell
           ? {
-              value: cell.value,
+              value: cell.display_value ?? cell.value,
               owner: cell.owner,
-              isBonus: cell.is_bonus,
-              bonusType: cell.bonus_type,
+              isBonus: false,
+              bonusType: null,
             }
           : null
       )
@@ -193,7 +217,6 @@ export const gameStore = create<GameStore>((set, get) => ({
       turn_number: payload.turn_number,
     }
 
-    // Auto-populate tileTracker in non-ranked mode
     let tileTracker = state.tileTracker
     if (state.mode !== 'ranked' && payload.placed_tiles) {
       tileTracker = { ...tileTracker }
@@ -209,15 +232,24 @@ export const gameStore = create<GameStore>((set, get) => ({
       currentTurnPlayerId: payload.current_turn_player_id,
       players,
       pendingPlacements: {},
+      pendingChoice: null,
       selectedRackIndex: null,
       tileTracker,
       recentMoves: [newEntry, ...state.recentMoves].slice(0, 50),
+      lastError: null,
     })
   },
 
   applyRackUpdate: (payload) => {
     const rack: (RackTile | null)[] = payload.rack.map(t =>
-      t ? { value: t.value, points: t.points } : null
+      t
+        ? {
+            tile_id: t.tile_id,
+            value: t.value,
+            type: t.type ?? 'number',
+            points: t.points,
+          }
+        : null
     )
     set({ rack, confirmedRack: rack })
   },
@@ -235,7 +267,9 @@ export const gameStore = create<GameStore>((set, get) => ({
     set({ gameOverResult: payload })
   },
 
-  placeTile: (rackIndex, row, col) => {
+  setError: (msg) => set({ lastError: msg }),
+
+  placeTile: (rackIndex, row, col, dualChoice = null, blankDesignation = null) => {
     const state = get()
     const tile = state.rack[rackIndex]
     if (!tile) return
@@ -246,7 +280,19 @@ export const gameStore = create<GameStore>((set, get) => ({
     delete newRackFlipped[rackIndex]
     set({
       rack: newRack,
-      pendingPlacements: { ...state.pendingPlacements, [key]: { value: tile.value, rackIndex } },
+      pendingPlacements: {
+        ...state.pendingPlacements,
+        [key]: {
+          tileId: tile.tile_id,
+          value: tile.value,
+          type: tile.type,
+          points: tile.points,
+          rackIndex,
+          dualChoice,
+          blankDesignation,
+        },
+      },
+      pendingChoice: null,
       selectedRackIndex: null,
       rackFlipped: newRackFlipped,
     })
@@ -257,8 +303,7 @@ export const gameStore = create<GameStore>((set, get) => ({
     const pending = state.pendingPlacements[key]
     if (!pending) return
     const newRack = [...state.rack]
-    const originalPoints = state.confirmedRack[pending.rackIndex]?.points ?? 0
-    newRack[pending.rackIndex] = { value: pending.value, points: originalPoints }
+    newRack[pending.rackIndex] = state.confirmedRack[pending.rackIndex] ?? null
     const newPending = { ...state.pendingPlacements }
     delete newPending[key]
     set({ rack: newRack, pendingPlacements: newPending })
@@ -268,11 +313,12 @@ export const gameStore = create<GameStore>((set, get) => ({
     const state = get()
     const newRack = [...state.rack]
     for (const pending of Object.values(state.pendingPlacements)) {
-      const originalPoints = state.confirmedRack[pending.rackIndex]?.points ?? 0
-      newRack[pending.rackIndex] = { value: pending.value, points: originalPoints }
+      newRack[pending.rackIndex] = state.confirmedRack[pending.rackIndex] ?? null
     }
-    set({ rack: newRack, pendingPlacements: {}, selectedRackIndex: null })
+    set({ rack: newRack, pendingPlacements: {}, pendingChoice: null, selectedRackIndex: null })
   },
+
+  setPendingChoice: (choice) => set({ pendingChoice: choice }),
 
   selectRackTile: (index) => {
     set(state => ({
@@ -315,7 +361,6 @@ export const gameStore = create<GameStore>((set, get) => ({
   resetGame: () => set({ ...initialState, board: makeEmptyBoard() }),
 }))
 
-// Named selector hook for ergonomic subscriptions
 export function useGameStore<T>(selector: (s: GameStore) => T): T {
   return gameStore(selector)
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { startTestServer, connectSocket, waitForEvent, createTestGame, cleanupTestGame, type TestServer, type TestGame } from './helpers'
-import type { GameStatePayload, MoveResultPayload, RackUpdatePayload } from '../../src/game/types'
+import type { RackUpdatePayload } from '../../src/game/types'
 
 let server: TestServer
 let game: TestGame
@@ -70,8 +70,8 @@ describe('move:exchange', () => {
     const [rackUpdate, moveResult] = await Promise.all([rackUpdateP, moveResultP])
 
     expect(Array.isArray(rackUpdate.rack)).toBe(true)
-    expect(moveResult.action).toBe('exchange')
-    expect(moveResult.score_earned).toBe(0)
+    expect(moveResult.type).toBe('exchange')
+    expect(moveResult.score_delta).toBe(0)
     alice.disconnect()
     bob.disconnect()
   })

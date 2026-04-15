@@ -31,7 +31,11 @@ function buildRawTokens(tiles: BoardTile[]): RawToken[] {
     } else if (tile.type === 'dual_operator') {
       tokens.push({ kind: 'operator', op: tile.display_value as '+' | '-' | '×' | '÷' })
     } else if (tile.type === 'blank') {
-      tokens.push({ kind: 'operator', op: tile.display_value as '+' | '-' | '×' | '÷' })
+      if (tile.display_value === '=') {
+        tokens.push({ kind: 'equals' })
+      } else {
+        tokens.push({ kind: 'operator', op: tile.display_value as '+' | '-' | '×' | '÷' })
+      }
     }
     i++
   }

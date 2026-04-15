@@ -9,12 +9,12 @@ export interface ValidateMoveInput {
   board: Board
   placements: Placement[]
   rack: BoardTile[]
-  rackSizeBefore: number
   isFirstMove: boolean
+  rackSizeBefore?: number
 }
 
 export function validateMove(input: ValidateMoveInput): ValidationResult {
-  const { board, placements, rack, rackSizeBefore, isFirstMove } = input
+  const { board, placements, rack, isFirstMove, rackSizeBefore = rack.length } = input
 
   // Step 1: Resolve tiles from rack
   const placedTileMap = new Map<string, BoardTile>()
@@ -74,7 +74,7 @@ export function validateMove(input: ValidateMoveInput): ValidationResult {
 
   const scoredEquations: EquationResult[] = equationResults.map((eq, i) => ({
     ...eq,
-    score: sequences[i] ? scoreMove([sequences[i]!], bonusMap, rackSizeBefore, false) : 0,
+    score: sequences[i] ? scoreMove([sequences[i]!], bonusMap) : 0,
   }))
 
   return {

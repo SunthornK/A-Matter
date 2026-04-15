@@ -1,6 +1,6 @@
 import type { Socket, Server } from 'socket.io'
 import type { PrismaClient } from '@prisma/client'
-import type { ClientEvents, ServerEvents, SocketData } from '../types'
+import type { ClientEvents, ServerEvents, SocketData, BoardCellEntry, PlayerStateEntry } from '../types'
 import type { BoardTile } from '@a-matter/validator'
 import { recordExchangeMove } from '../db'
 
@@ -26,7 +26,9 @@ export async function handleExchange(
 
   const game = await prisma.game.findUniqueOrThrow({
     where: { id: gameId },
-    include: { players: true },
+    include: {
+      players: { include: { user: { select: { displayName: true } } } },
+    },
   })
 
   if (game.currentTurnPlayerId !== playerId) {
@@ -54,7 +56,6 @@ export async function handleExchange(
     return
   }
 
-  // 3-second debounce
   if (myPlayer.lastExchangeAt) {
     const msSinceLast = Date.now() - myPlayer.lastExchangeAt.getTime()
     if (msSinceLast < 3000) {
@@ -83,13 +84,49 @@ export async function handleExchange(
     timeSpentMs,
   })
 
+  const currentBoard = (game.boardState as { cells: (BoardTile | null)[][] }).cells
+  const enrichedBoard: (BoardCellEntry | null)[][] = currentBoard.map((row) =>
+    row.map((cell) =>
+      cell
+        ? { ...cell, owner: (cell as unknown as { owner?: string | null }).owner ?? null }
+        : null,
+    ),
+  )
+
+  const updatedPlayers: PlayerStateEntry[] = [
+    {
+      player_id: playerId,
+      user_id: myPlayer.userId,
+      display_name: myPlayer.user?.displayName ?? `Guest ${myPlayer.seat}`,
+      seat: myPlayer.seat,
+      score: myPlayer.score,
+      time_remaining_ms: myPlayer.timeRemainingMs,
+      consecutive_passes: 0,
+      tiles_remaining: newRack.length,
+    },
+    {
+      player_id: otherPlayer.id,
+      user_id: otherPlayer.userId,
+      display_name: otherPlayer.user?.displayName ?? `Guest ${otherPlayer.seat}`,
+      seat: otherPlayer.seat,
+      score: otherPlayer.score,
+      time_remaining_ms: otherPlayer.timeRemainingMs,
+      consecutive_passes: otherPlayer.consecutivePasses,
+      tiles_remaining: (otherPlayer.rack as unknown as BoardTile[]).length,
+    },
+  ]
+
   io.to(`game:${gameId}`).emit('move:result', {
+    seq: game.turnNumber + 1,
+    type: 'exchange',
     player_id: playerId,
-    turn_number: game.turnNumber,
-    action: 'exchange',
-    score_earned: 0,
-    new_score: myPlayer.score,
-    next_player_id: otherPlayer.id,
+    score_delta: 0,
+    board: enrichedBoard,
+    bag: newBag.length,
+    consecutive_passes: 0,
+    turn_number: game.turnNumber + 1,
+    current_turn_player_id: otherPlayer.id,
+    players: updatedPlayers,
     timestamp: Date.now(),
   })
 

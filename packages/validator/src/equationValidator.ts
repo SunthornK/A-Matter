@@ -30,46 +30,50 @@ export function validateEquation(sequence: TileSequence): EquationValidationResu
   if (equalsPositions.length === 0) {
     return { is_valid: false, expression, left_value: null, right_value: null, error: 'No equals sign in equation' }
   }
-  if (equalsPositions.length > 1) {
-    return { is_valid: false, expression, left_value: null, right_value: null, error: 'Multiple equals signs' }
+
+  // Reject consecutive equals signs (e.g. "3==3")
+  for (let k = 1; k < equalsPositions.length; k++) {
+    if (equalsPositions[k]! === equalsPositions[k - 1]! + 1) {
+      return { is_valid: false, expression, left_value: null, right_value: null, error: 'Consecutive equals signs are not allowed' }
+    }
   }
 
-  const eqIdx = equalsPositions[0]!
-  const leftTokens = tokens.slice(0, eqIdx)
-  const rightTokens = tokens.slice(eqIdx + 1)
-
-  if (leftTokens[0]?.kind === 'operator' && leftTokens[0].op === '+') {
-    return { is_valid: false, expression, left_value: null, right_value: null, error: 'Unary plus is not allowed' }
-  }
-  if (rightTokens[0]?.kind === 'operator' && rightTokens[0].op === '+') {
-    return { is_valid: false, expression, left_value: null, right_value: null, error: 'Unary plus is not allowed' }
+  // Split token stream into segments separated by '='
+  // e.g. 7+6=10+3=13 → [[7,+,6], [10,+,3], [13]]
+  const segmentBoundaries = [-1, ...equalsPositions, tokens.length]
+  const segments = []
+  for (let k = 0; k + 1 < segmentBoundaries.length; k++) {
+    segments.push(tokens.slice(segmentBoundaries[k]! + 1, segmentBoundaries[k + 1]!))
   }
 
-  if (leftTokens[0]?.kind === 'negate' && leftTokens[1]?.kind === 'number' && leftTokens[1].value === 0) {
-    return { is_valid: false, expression, left_value: null, right_value: null, error: '-0 is not a valid expression' }
-  }
-  if (rightTokens[0]?.kind === 'negate' && rightTokens[1]?.kind === 'number' && rightTokens[1].value === 0) {
-    return { is_valid: false, expression, left_value: null, right_value: null, error: '-0 is not a valid expression' }
+  for (const seg of segments) {
+    if (seg[0]?.kind === 'operator' && seg[0].op === '+') {
+      return { is_valid: false, expression, left_value: null, right_value: null, error: 'Unary plus is not allowed' }
+    }
+    if (seg[0]?.kind === 'negate' && seg[1]?.kind === 'number' && seg[1].value === 0) {
+      return { is_valid: false, expression, left_value: null, right_value: null, error: '-0 is not a valid expression' }
+    }
   }
 
   try {
-    const leftValue = evaluate(leftTokens)
-    const rightValue = evaluate(rightTokens)
+    const values = segments.map(evaluate)
 
-    if (fracToNumber(leftValue) < 0) {
-      return { is_valid: false, expression, left_value: leftValue, right_value: rightValue, error: 'Negative result on left side' }
-    }
-    if (fracToNumber(rightValue) < 0) {
-      return { is_valid: false, expression, left_value: leftValue, right_value: rightValue, error: 'Negative result on right side' }
+    for (const v of values) {
+      if (fracToNumber(v) < 0) {
+        return { is_valid: false, expression, left_value: values[0]!, right_value: values[values.length - 1]!, error: 'Negative result in equation' }
+      }
     }
 
-    const isValid = fracEq(leftValue, rightValue)
+    // All segments must evaluate to the same value
+    const allEqual = values.every((v) => fracEq(v, values[0]!))
+    const leftValue = values[0]!
+    const rightValue = values[values.length - 1]!
     return {
-      is_valid: isValid,
+      is_valid: allEqual,
       expression,
       left_value: leftValue,
       right_value: rightValue,
-      error: isValid ? undefined : `${expression} does not balance`,
+      error: allEqual ? undefined : `${expression} does not balance`,
     }
   } catch (err) {
     const message = err instanceof EvaluationError ? err.message : 'Invalid expression'

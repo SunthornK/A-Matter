@@ -54,8 +54,8 @@ describe('Socket.IO connection', () => {
     const state = await statePromise
     expect(state.game_id).toBe(game.gameId)
     expect(state.my_player_id).toBe(game.alicePlayerId)
-    expect(Array.isArray(state.my_rack)).toBe(true)
-    expect(state.my_rack.length).toBe(8)
+    expect(Array.isArray(state.rack)).toBe(true)
+    expect(state.rack.length).toBe(8)
     expect(state.board).toHaveLength(15)
     expect(state.players).toHaveLength(2)
     socket.disconnect()

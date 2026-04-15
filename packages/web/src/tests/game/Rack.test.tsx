@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Rack } from '../../game/Rack'
 import { gameStore } from '../../store/gameStore'
-import type { GameStatePayload } from '../../types/game'
+import type { GameStatePayload, RackTilePayload } from '../../types/game'
 
 const baseState: GameStatePayload = {
   seq: 1, game_id: 'g1', mode: 'quickplay',
   board: Array.from({ length: 15 }, () => Array(15).fill(null)),
   rack: [
-    { value: '3', points: 2 },
-    { value: '+', points: 1 },
+    { tile_id: '3_01', value: '3', type: 'number', display_value: '3', is_blank: false, blank_designation: null, dual_choice: null, points: 2 } satisfies RackTilePayload,
+    { tile_id: '+_01', value: '+', type: 'operator', display_value: '+', is_blank: false, blank_designation: null, dual_choice: null, points: 1 } satisfies RackTilePayload,
     null, null, null, null, null, null,
   ],
   bag: 90, turn_number: 1, current_turn_player_id: 'p1',

@@ -33,7 +33,7 @@ describe('game:resign', () => {
     const gameOver = await gameOverP
 
     expect(gameOver.reason).toBe('forfeit')
-    expect(gameOver.winner_player_id).toBe(freshGame.bobPlayerId)
+    expect(gameOver.winner_id).toBe(freshGame.bobPlayerId)
 
     alice.disconnect()
     bob.disconnect()
@@ -57,7 +57,7 @@ describe('game:resign', () => {
     const gameOver = await gameOverP
 
     expect(gameOver.reason).toBe('forfeit')
-    expect(gameOver.winner_player_id).toBe(freshGame.alicePlayerId)
+    expect(gameOver.winner_id).toBe(freshGame.alicePlayerId)
 
     alice.disconnect()
     bob.disconnect()

@@ -28,6 +28,8 @@ export function RackTile({ index }: RackTileProps) {
     isFlipped ? styles.flipped : '',
   ].filter(Boolean).join(' ')
 
+  const isBlank = tile.type === 'blank'
+
   return (
     <div
       className={classNames}
@@ -35,7 +37,7 @@ export function RackTile({ index }: RackTileProps) {
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
-      {!isFlipped && tile.value}
+      {!isFlipped && !isBlank && tile.value}
       {!isFlipped && <span className={styles.points}>{tile.points}</span>}
     </div>
   )

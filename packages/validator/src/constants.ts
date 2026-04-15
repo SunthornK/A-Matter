@@ -9,8 +9,8 @@ interface TileDefinition {
 
 export const TILE_DEFINITIONS: TileDefinition[] = [
   { value: '0', type: 'number', points: 1, count: 5 },
-  { value: '1', type: 'number', points: 1, count: 5 },
-  { value: '2', type: 'number', points: 1, count: 5 },
+  { value: '1', type: 'number', points: 1, count: 6 },
+  { value: '2', type: 'number', points: 1, count: 6 },
   { value: '3', type: 'number', points: 1, count: 5 },
   { value: '4', type: 'number', points: 2, count: 5 },
   { value: '5', type: 'number', points: 2, count: 4 },
@@ -18,9 +18,9 @@ export const TILE_DEFINITIONS: TileDefinition[] = [
   { value: '7', type: 'number', points: 2, count: 4 },
   { value: '8', type: 'number', points: 2, count: 4 },
   { value: '9', type: 'number', points: 2, count: 4 },
-  { value: '10', type: 'number', points: 3, count: 3 },
+  { value: '10', type: 'number', points: 3, count: 2 },
   { value: '11', type: 'number', points: 4, count: 1 },
-  { value: '12', type: 'number', points: 3, count: 3 },
+  { value: '12', type: 'number', points: 3, count: 2 },
   { value: '13', type: 'number', points: 6, count: 1 },
   { value: '14', type: 'number', points: 4, count: 1 },
   { value: '15', type: 'number', points: 4, count: 1 },

@@ -66,12 +66,35 @@ describe('validateEquation', () => {
     expect(result.error).toMatch(/equals/i)
   })
 
-  it('invalid: two equals signs', () => {
+  it('valid: 7+6=10+3=13 (chain equality)', () => {
+    const seq = makeSeq([
+      makeTile('7', 7, 0), makeTile('+', 7, 1), makeTile('6', 7, 2),
+      makeTile('=', 7, 3),
+      makeTile('10', 7, 4), makeTile('+', 7, 5), makeTile('3', 7, 6),
+      makeTile('=', 7, 7), makeTile('13', 7, 8),
+    ])
+    const result = validateEquation(seq)
+    expect(result.is_valid).toBe(true)
+    expect(result.expression).toBe('7+6=10+3=13')
+  })
+
+  it('invalid: unbalanced chain 5=3=8 (different values)', () => {
     const seq = makeSeq([
       makeTile('5', 7, 3), makeTile('=', 7, 4), makeTile('3', 7, 5),
       makeTile('=', 7, 6), makeTile('8', 7, 7),
     ])
-    expect(validateEquation(seq).is_valid).toBe(false)
+    const result = validateEquation(seq)
+    expect(result.is_valid).toBe(false)
+    expect(result.error).toMatch(/does not balance/i)
+  })
+
+  it('invalid: consecutive equals signs 3==3', () => {
+    const seq = makeSeq([
+      makeTile('3', 7, 0), makeTile('=', 7, 1), makeTile('=', 7, 2), makeTile('3', 7, 3),
+    ])
+    const result = validateEquation(seq)
+    expect(result.is_valid).toBe(false)
+    expect(result.error).toMatch(/consecutive equals/i)
   })
 
   it('invalid: division by zero', () => {

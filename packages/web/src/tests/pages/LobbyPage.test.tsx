@@ -43,6 +43,7 @@ function renderLobby() {
           <Routes>
             <Route path="/lobby" element={<LobbyPage />} />
             <Route path="/game/:gameId" element={<div>game</div>} />
+            <Route path="/waiting/:inviteCode" element={<div>waiting</div>} />
           </Routes>
         </AuthProvider>
       </MemoryRouter>
@@ -67,12 +68,12 @@ describe('LobbyPage', () => {
     expect(screen.getByText(/private room/i)).toBeInTheDocument()
   })
 
-  it('redirects to /game/:gameId after creating private room', async () => {
+  it('redirects to /waiting/:inviteCode after creating private room', async () => {
     vi.mocked(roomsApi.createRoom).mockResolvedValue({ game_id: 'g42', invite_code: 'ABC' })
     renderLobby()
     await waitFor(() => screen.getByText(/private room/i))
     await userEvent.click(screen.getByRole('button', { name: /create private room/i }))
-    await waitFor(() => expect(screen.getByText('game')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('waiting')).toBeInTheDocument())
   })
 
   it('clicking Play now on Ranked calls joinQueue("ranked") and shows cancel button', async () => {

@@ -4,7 +4,7 @@ import type { ClientEvents, ServerEvents, SocketData } from './types'
 
 export async function applyEndgame(
   gameId: string,
-  reason: 'completion' | 'timeout' | 'forfeit' | 'stalemate',
+  reason: 'score' | 'timeout' | 'forfeit' | 'stalemate',
   winnerPlayerId: string | null,
   io: Server<ClientEvents, ServerEvents, Record<string, never>, SocketData>,
   prisma: PrismaClient,
@@ -25,14 +25,18 @@ export async function applyEndgame(
 
   await prisma.game.update({
     where: { id: gameId },
-    data: { status: 'finished', endReason: reason, finishedAt: new Date() },
+    data: {
+      status: 'finished',
+      endReason: reason === 'score' ? 'completion' : reason,
+      finishedAt: new Date(),
+    },
   })
 
   const finalPlayers = await prisma.gamePlayer.findMany({ where: { gameId } })
 
   io.to(`game:${gameId}`).emit('game:over', {
     reason,
-    winner_player_id: winnerPlayerId,
+    winner_id: winnerPlayerId,
     final_scores: finalPlayers.map((p) => ({ player_id: p.id, score: p.score })),
     timestamp: Date.now(),
   })

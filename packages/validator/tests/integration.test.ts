@@ -25,7 +25,7 @@ describe('validateMove — first move', () => {
     const placements: Placement[] = [
       p(7, 5, '5'), p(7, 6, '+'), p(7, 7, '3'), p(7, 8, '='), p(7, 9, '8'),
     ]
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 5, isFirstMove: true })
+    const result = validateMove({ board, placements, rack, isFirstMove: true })
     expect(result.is_valid).toBe(true)
     expect(result.equations).toHaveLength(1)
     expect(result.equations[0]!.is_valid).toBe(true)
@@ -38,7 +38,7 @@ describe('validateMove — first move', () => {
     const placements: Placement[] = [
       p(0, 0, '5'), p(0, 1, '+'), p(0, 2, '3'), p(0, 3, '='), p(0, 4, '8'),
     ]
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 5, isFirstMove: true })
+    const result = validateMove({ board, placements, rack, isFirstMove: true })
     expect(result.is_valid).toBe(false)
     expect(result.error).toMatch(/center/i)
   })
@@ -49,7 +49,7 @@ describe('validateMove — first move', () => {
     const placements: Placement[] = [
       p(7, 5, '5'), p(7, 6, '+'), p(7, 7, '3'), p(7, 8, '='), p(7, 9, '9'),
     ]
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 5, isFirstMove: true })
+    const result = validateMove({ board, placements, rack, isFirstMove: true })
     expect(result.is_valid).toBe(false)
   })
 })
@@ -68,7 +68,7 @@ describe('validateMove — subsequent move', () => {
     const placements: Placement[] = [
       p(5, 7, '1'), p(6, 7, '+'), p(8, 7, '='), p(9, 7, '4'),
     ]
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 4, isFirstMove: false })
+    const result = validateMove({ board, placements, rack, isFirstMove: false })
     expect(result.is_valid).toBe(true)
   })
 
@@ -79,7 +79,7 @@ describe('validateMove — subsequent move', () => {
     const placements: Placement[] = [
       p(0, 0, '1'), p(0, 1, '+'), p(0, 2, '2'), p(0, 3, '='), p(0, 4, '3'),
     ]
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 5, isFirstMove: false })
+    const result = validateMove({ board, placements, rack, isFirstMove: false })
     expect(result.is_valid).toBe(false)
   })
 
@@ -88,7 +88,7 @@ describe('validateMove — subsequent move', () => {
     board[7]![7] = tile('5')
     const rack = [tile('1')]
     const placements: Placement[] = [p(7, 8, '9')]  // tile '9' not in rack
-    const result = validateMove({ board, placements, rack, rackSizeBefore: 1, isFirstMove: false })
+    const result = validateMove({ board, placements, rack, isFirstMove: false })
     expect(result.is_valid).toBe(false)
   })
 })

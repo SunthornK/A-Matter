@@ -44,7 +44,12 @@ export function Cell({ row, col }: CellProps) {
     }
 
     if (state.selectedRackIndex !== null) {
-      state.placeTile(state.selectedRackIndex, row, col)
+      const tile = state.rack[state.selectedRackIndex]
+      if (tile && (tile.type === 'dual_operator' || tile.type === 'blank')) {
+        state.setPendingChoice({ row, col, rackIndex: state.selectedRackIndex })
+      } else {
+        state.placeTile(state.selectedRackIndex, row, col)
+      }
     }
   }
 
@@ -63,7 +68,10 @@ export function Cell({ row, col }: CellProps) {
     pending ? styles.pending : '',
   ].filter(Boolean).join(' ')
 
-  const displayValue = pending?.value ?? cell?.value ?? ''
+  const pendingDisplay = pending
+    ? (pending.blankDesignation ?? pending.dualChoice ?? (pending.type === 'blank' ? '' : pending.value))
+    : null
+  const displayValue = pendingDisplay ?? cell?.value ?? ''
 
   return (
     <div

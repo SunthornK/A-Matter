@@ -3,16 +3,14 @@ import type { TileSequence, BonusType } from './types'
 export function scoreMove(
   sequences: TileSequence[],
   bonusMap: Map<string, BonusType>,
-  rackSizeBefore: number,
-  allRackTilesUsed: boolean,
+  rackSizeBefore = 0,
+  allRackTilesUsed = false,
 ): number {
   let total = 0
   for (const seq of sequences) {
     total += scoreSequence(seq, bonusMap)
   }
-  if (rackSizeBefore === 8 && allRackTilesUsed) {
-    total += 40
-  }
+  if (rackSizeBefore === 8 && allRackTilesUsed) total += 40
   return total
 }
 

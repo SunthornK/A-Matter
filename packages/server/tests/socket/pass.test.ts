@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { startTestServer, connectSocket, waitForEvent, createTestGame, cleanupTestGame, type TestServer, type TestGame } from './helpers'
-import type { GameStatePayload, MoveResultPayload, GameOverPayload } from '../../src/game/types'
+import type { GameOverPayload } from '../../src/game/types'
 
 let server: TestServer
 let game: TestGame
@@ -49,10 +49,10 @@ describe('move:pass', () => {
     const moveResultP = waitForEvent(notActing, 'move:result')
     acting.emit('move:pass')
     const result = await moveResultP
-    expect(result.action).toBe('pass')
-    expect(result.score_earned).toBe(0)
+    expect(result.type).toBe('pass')
+    expect(result.score_delta).toBe(0)
     const actingPlayerId = aliceState.current_turn_player_id
-    expect(result.next_player_id).not.toBe(actingPlayerId)
+    expect(result.current_turn_player_id).not.toBe(actingPlayerId)
     alice.disconnect()
     bob.disconnect()
   })
@@ -94,7 +94,7 @@ describe('move:pass', () => {
     const gameOver = await gameOverP
 
     expect(gameOver.reason).toBe('stalemate')
-    expect(gameOver.winner_player_id).toBeNull()
+    expect(gameOver.winner_id).toBeNull()
 
     alice.disconnect()
     bob.disconnect()

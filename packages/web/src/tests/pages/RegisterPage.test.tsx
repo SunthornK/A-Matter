@@ -45,11 +45,12 @@ describe('RegisterPage', () => {
     renderRegister()
 
     await userEvent.type(screen.getByLabelText(/username/i), 'alice')
+    await userEvent.type(screen.getByLabelText(/email/i), 'alice@test.com')
     await userEvent.type(screen.getByLabelText(/display name/i), 'Alice')
     await userEvent.type(screen.getByLabelText(/password/i), 'password')
     await userEvent.click(screen.getByRole('button', { name: /create account/i }))
 
-    expect(authApi.register).toHaveBeenCalledWith('alice', 'password', 'Alice')
+    expect(authApi.register).toHaveBeenCalledWith('alice', 'alice@test.com', 'password', 'Alice')
   })
 
   it('redirects to /lobby after registration', async () => {
@@ -60,6 +61,7 @@ describe('RegisterPage', () => {
     renderRegister()
 
     await userEvent.type(screen.getByLabelText(/username/i), 'alice')
+    await userEvent.type(screen.getByLabelText(/email/i), 'alice@test.com')
     await userEvent.type(screen.getByLabelText(/display name/i), 'Alice')
     await userEvent.type(screen.getByLabelText(/password/i), 'password')
     await userEvent.click(screen.getByRole('button', { name: /create account/i }))
@@ -72,6 +74,7 @@ describe('RegisterPage', () => {
     renderRegister()
 
     await userEvent.type(screen.getByLabelText(/username/i), 'alice')
+    await userEvent.type(screen.getByLabelText(/email/i), 'alice@test.com')
     await userEvent.type(screen.getByLabelText(/display name/i), 'Alice')
     await userEvent.type(screen.getByLabelText(/password/i), 'password')
     await userEvent.click(screen.getByRole('button', { name: /create account/i }))

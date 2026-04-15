@@ -1,15 +1,22 @@
 // Mirror server game types for client consumption
 
 export interface BoardCellPayload {
-  value: string
+  value: string         // raw tile identity: 'blank', '+/-', etc.
+  display_value: string // resolved symbol to display: the designation or chosen op
   owner: string | null  // player_id; resolve display via owner === myPlayerId
   is_bonus: boolean
   bonus_type: 'b3eq' | 'b2eq' | 'b3pc' | 'b2pc' | null
 }
 
 export interface RackTilePayload {
+  tile_id: string
   value: string
+  type: 'number' | 'operator' | 'equals' | 'dual_operator' | 'blank'
   points: number
+  display_value: string
+  is_blank: boolean
+  blank_designation: string | null
+  dual_choice: string | null
 }
 
 export interface PlayerStatePayload {
@@ -67,7 +74,7 @@ export interface TimerSyncPayload {
 }
 
 export interface GameOverPayload {
-  reason: 'score' | 'timeout' | 'forfeit' | 'resign' | 'stalemate'
+  reason: 'score' | 'timeout' | 'forfeit' | 'stalemate'
   winner_id: string | null
   final_scores: Array<{ player_id: string; score: number }>
 }

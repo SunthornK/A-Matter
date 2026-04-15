@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { hashPassword, verifyPassword, signToken } from '../services/auth.service'
+import { hashPassword, verifyPassword, signToken, verifyTokenPayload } from '../services/auth.service'
 import { config } from '../config'
 
 interface RegisterBody {
@@ -51,7 +51,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     return reply.status(201).send({
       token,
-      user: { id: user.id, username: user.username, display_name: user.displayName },
+      user: { id: user.id, username: user.username, display_name: user.displayName, role: user.role === 'admin' ? 'admin' : 'user' },
     })
   })
 
@@ -87,7 +87,38 @@ export async function authRoutes(app: FastifyInstance) {
 
     return reply.send({
       token,
-      user: { id: user.id, username: user.username, display_name: user.displayName },
+      user: { id: user.id, username: user.username, display_name: user.displayName, role: user.role === 'admin' ? 'admin' : 'user' },
+    })
+  })
+
+  app.post('/api/auth/refresh', async (req, reply) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    if (!token) {
+      return reply.status(401).send({ error: 'No token provided' })
+    }
+
+    let payload: ReturnType<typeof verifyTokenPayload>
+    try {
+      payload = verifyTokenPayload(token, config.jwtSecret)
+    } catch {
+      return reply.status(401).send({ error: 'Invalid or expired token' })
+    }
+
+    const user = await app.prisma.user.findUnique({ where: { id: payload.user_id } })
+    if (!user || user.tokenVersion !== payload.token_version) {
+      return reply.status(401).send({ error: 'Token has been revoked' })
+    }
+
+    const newToken = signToken(
+      { user_id: user.id, role: user.role === 'admin' ? 'admin' : 'user', token_version: user.tokenVersion },
+      config.jwtSecret,
+      config.jwtTtlSeconds,
+    )
+
+    return reply.send({
+      token: newToken,
+      user: { id: user.id, username: user.username, display_name: user.displayName, role: user.role === 'admin' ? 'admin' : 'user' },
     })
   })
 }

@@ -30,7 +30,7 @@ describe('scoreMove', () => {
       { value: '=', points: 1, row: 7, col: 6, is_new: true },
       { value: '8', points: 2, row: 7, col: 7, is_new: true },
     ]))
-    expect(scoreMove([seq], new Map(), 8, false)).toBe(9)
+    expect(scoreMove([seq], new Map())).toBe(9)
   })
 
   it('DL on a newly placed tile doubles its face value only', () => {
@@ -43,7 +43,7 @@ describe('scoreMove', () => {
     ]))
     const bonusMap = new Map<string, BonusType>([['7,3', 'DL']])
     // 5 tile: 2×2=4, rest: 2+2+1+2=7 → total 11
-    expect(scoreMove([seq], bonusMap, 8, false)).toBe(11)
+    expect(scoreMove([seq], bonusMap)).toBe(11)
   })
 
   it('TW on a newly placed tile triples the whole equation', () => {
@@ -56,7 +56,7 @@ describe('scoreMove', () => {
     ]))
     const bonusMap = new Map<string, BonusType>([['0,0', 'TW']])
     // Sum: 2+2+2+1+2=9, ×3=27
-    expect(scoreMove([seq], bonusMap, 8, false)).toBe(27)
+    expect(scoreMove([seq], bonusMap)).toBe(27)
   })
 
   it('DL on existing tile does NOT apply multiplier', () => {
@@ -69,27 +69,23 @@ describe('scoreMove', () => {
     ]))
     const bonusMap = new Map<string, BonusType>([['7,3', 'DL']])
     // DL ignored because tile is not new → 2+2+2+1+2=9
-    expect(scoreMove([seq], bonusMap, 8, false)).toBe(9)
+    expect(scoreMove([seq], bonusMap)).toBe(9)
   })
 
-  it('bingo does NOT trigger when fewer than 8 tiles placed', () => {
-    const seq = makeSeq(makeTiles([
-      { value: '5', points: 2, row: 7, col: 3, is_new: true },
-      { value: '+', points: 2, row: 7, col: 4, is_new: true },
-      { value: '3', points: 2, row: 7, col: 5, is_new: true },
-      { value: '=', points: 1, row: 7, col: 6, is_new: true },
-      { value: '8', points: 2, row: 7, col: 7, is_new: true },
-    ]))
-    // rackSizeBefore=8 but allRackTilesUsed=false (only 5 placed)
-    expect(scoreMove([seq], new Map(), 8, false)).toBe(9)
-  })
-
-  it('bingo triggers when rack was exactly 8 and all 8 used', () => {
+  it('bingo: using all 8 rack tiles adds +40', () => {
     const seq = makeSeq(makeTiles(
       Array.from({ length: 8 }, (_, i) => ({ value: String(i), points: 2, row: 7, col: i, is_new: true }))
     ))
     // 8 tiles × 2 points = 16, + 40 bingo = 56
     expect(scoreMove([seq], new Map(), 8, true)).toBe(56)
+  })
+
+  it('no bingo when rack was fewer than 8', () => {
+    const seq = makeSeq(makeTiles(
+      Array.from({ length: 5 }, (_, i) => ({ value: String(i), points: 2, row: 7, col: i, is_new: true }))
+    ))
+    // 5 tiles × 2 = 10, rackSizeBefore=5 but not 8 → no bonus
+    expect(scoreMove([seq], new Map(), 5, true)).toBe(10)
   })
 
   it('two equations scored separately and summed', () => {
@@ -108,6 +104,6 @@ describe('scoreMove', () => {
       { value: '3', points: 1, row: 9, col: 2, is_new: true },
     ]))
     // seq1: 1+2+1+1+2=7, seq2: 1+2+1+1+1=6 → total 13
-    expect(scoreMove([seq1, seq2], new Map(), 8, false)).toBe(13)
+    expect(scoreMove([seq1, seq2], new Map())).toBe(13)
   })
 })
