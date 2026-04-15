@@ -7,7 +7,7 @@ interface AuthContextValue {
   user: AuthUser | null
   isLoading: boolean
   login: (username: string, password: string) => Promise<void>
-  register: (username: string, password: string, displayName: string) => Promise<void>
+  register: (username: string, email: string, password: string, displayName: string) => Promise<void>
   logout: () => void
 }
 
@@ -44,10 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const register = useCallback(async (username: string, password: string, displayName: string) => {
+  const register = useCallback(async (username: string, email: string, password: string, displayName: string) => {
     setIsLoading(true)
     try {
-      const res = await apiRegister(username, password, displayName)
+      const res = await apiRegister(username, email, password, displayName)
       setJwt(res.token)
       localStorage.setItem('user', JSON.stringify(res.user))
       setUser(res.user)

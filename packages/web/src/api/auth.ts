@@ -3,12 +3,13 @@ import type { AuthResponse } from '../types/api'
 
 export async function register(
   username: string,
+  email: string,
   password: string,
   display_name: string,
 ): Promise<AuthResponse> {
   return apiFetch<AuthResponse>('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ username, password, display_name }),
+    body: JSON.stringify({ username, email, password, display_name }),
   })
 }
 

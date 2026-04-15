@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const { register } = useAuth()
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +19,7 @@ export default function RegisterPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await register(username, password, displayName)
+      await register(username, email, password, displayName)
       navigate('/lobby')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
@@ -44,6 +45,18 @@ export default function RegisterPage() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoComplete="username"
+                required
+              />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>Email</label>
+              <input
+                id="email"
+                className={styles.input}
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
             </div>
